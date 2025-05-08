@@ -3,6 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://dmelj2qgr8w7k" path="res://icon.svg" id="1_crmta"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vefth"]
+size = Vector2(32, 32)
 
 [node name="PlayerScene" type="Player"]
 
@@ -10,4 +11,5 @@
 shape = SubResource("RectangleShape2D_vefth")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.25, 0.25)
 texture = ExtResource("1_crmta")
