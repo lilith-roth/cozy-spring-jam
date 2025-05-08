@@ -8,7 +8,7 @@
 [node name="IngameScene" type="Node2D"]
 script = ExtResource("1_objyc")
 
-[node name="Player" type="Sprite2D" parent="." groups=["Persist"]]
+[node name="Player" type="Player" parent="."]
 texture = ExtResource("2_h1yxu")
 
 [node name="UI" type="CanvasLayer" parent="."]
