@@ -3,6 +3,7 @@ use godot::prelude::*;
 #[derive(GodotClass)]
 #[class(base=CharacterBody2D)]
 struct Player {
+    #[export]
     speed: f32,
     base: Base<CharacterBody2D>,
 }
