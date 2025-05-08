@@ -17,10 +17,10 @@ use godot::classes::{CharacterBody2D, ICharacterBody2D};
 #[godot_api]
 impl ICharacterBody2D for Player {
     fn init(base: Base<CharacterBody2D>) -> Self {
-        Self { speed: 800.0, base }
+        Self { speed: 300.0, base }
     }
 
-    fn physics_process(&mut self, delta: f64) {
+    fn physics_process(&mut self, _delta: f64) {
         let input = Input::singleton();
 
         let left = input.is_action_pressed("move_left");
