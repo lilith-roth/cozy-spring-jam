@@ -103,13 +103,16 @@ enum WallTile {
 #[class(base=TileMapLayer, init)]
 struct WallsLayer {
     #[export]
-    terrain_set: i32,
+    wall_terrain_set: i32,
 
     #[export]
     wall_terrain: i32,
 
     #[export]
-    empty_tile: Vector2i,
+    clear_terrain_set: i32,
+
+    #[export]
+    clear_terrain: i32,
 
     base: Base<TileMapLayer>,
 }
@@ -131,20 +134,17 @@ impl WallsLayer {
     }
 
     fn place_clear(&mut self, cells: &Array<Vector2i>) {
-        let empty_tile = self.empty_tile;
-        for pos in cells.iter_shared() {
-            self.base_mut()
-                .set_cell_ex(pos)
-                .atlas_coords(empty_tile)
-                .done();
-        }
+        let terrain_set = self.clear_terrain_set;
+        let terrain = self.clear_terrain;
+        self.base_mut()
+            .set_cells_terrain_connect(&cells, terrain_set, terrain);
     }
 
     fn place_walls(&mut self, cells: &Array<Vector2i>) {
-        let terrain_set = self.terrain_set;
-        let wall_terrain = self.wall_terrain;
+        let terrain_set = self.wall_terrain_set;
+        let terrain = self.wall_terrain;
         self.base_mut()
-            .set_cells_terrain_connect(&cells, terrain_set, wall_terrain);
+            .set_cells_terrain_connect(&cells, terrain_set, terrain);
     }
 }
 

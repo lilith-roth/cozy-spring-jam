@@ -155,6 +155,8 @@ texture_region_size = Vector2i(32, 16)
 4:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, -16, 16, 16, 16, 16, -16)
 5:8/size_in_atlas = Vector2i(1, 2)
 5:8/0 = 0
+5:8/0/terrain_set = 1
+5:8/0/terrain = 0
 5:8/0/navigation_layer_0/polygon = SubResource("NavigationPolygon_1x67x")
 
 [resource]
@@ -163,6 +165,9 @@ physics_layer_0/collision_layer = 1
 terrain_set_0/mode = 2
 terrain_set_0/terrain_0/name = "Trees"
 terrain_set_0/terrain_0/color = Color(0.5, 0.34375, 0.25, 1)
+terrain_set_1/mode = 2
+terrain_set_1/terrain_0/name = "Clear"
+terrain_set_1/terrain_0/color = Color(0.5, 0.34375, 0.25, 1)
 navigation_layer_0/layers = 1
 sources/0 = SubResource("TileSetAtlasSource_quwiy")
 sources/1 = SubResource("TileSetAtlasSource_jad6m")
