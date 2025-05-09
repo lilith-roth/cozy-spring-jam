@@ -1,16 +1,6 @@
-[gd_resource type="TileSet" load_steps=6 format=3 uid="uid://p85q8iw0h88p"]
+[gd_resource type="TileSet" load_steps=4 format=3 uid="uid://p85q8iw0h88p"]
 
-[ext_resource type="Texture2D" uid="uid://dvultkn84b5gm" path="res://debug_tiles.png" id="1_1x67x"]
 [ext_resource type="Texture2D" uid="uid://b0kgiln6klted" path="res://assets/walls.png" id="2_i6h1u"]
-
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_quwiy"]
-texture = ExtResource("1_1x67x")
-texture_region_size = Vector2i(32, 32)
-0:0/next_alternative_id = 2
-0:0/0 = 0
-1:0/next_alternative_id = 2
-1:0/0 = 0
-1:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, -16, 16, 16, 16, 16, -16)
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_1x67x"]
 vertices = PackedVector2Array(16, 16, -16, 16, -16, -16, 16, -16)
@@ -155,8 +145,6 @@ texture_region_size = Vector2i(32, 16)
 4:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, -16, 16, 16, 16, 16, -16)
 5:8/size_in_atlas = Vector2i(1, 2)
 5:8/0 = 0
-5:8/0/terrain_set = 1
-5:8/0/terrain = 0
 5:8/0/navigation_layer_0/polygon = SubResource("NavigationPolygon_1x67x")
 
 [resource]
@@ -165,9 +153,5 @@ physics_layer_0/collision_layer = 1
 terrain_set_0/mode = 2
 terrain_set_0/terrain_0/name = "Trees"
 terrain_set_0/terrain_0/color = Color(0.5, 0.34375, 0.25, 1)
-terrain_set_1/mode = 2
-terrain_set_1/terrain_0/name = "Clear"
-terrain_set_1/terrain_0/color = Color(0.5, 0.34375, 0.25, 1)
 navigation_layer_0/layers = 1
-sources/0 = SubResource("TileSetAtlasSource_quwiy")
 sources/1 = SubResource("TileSetAtlasSource_jad6m")

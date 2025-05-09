@@ -9,6 +9,8 @@ height = 11
 y_sort_enabled = true
 
 [node name="WallsLayer" type="WallsLayer" parent="."]
-clear_terrain_set = 1
+tile_source = 1
+clear_coords = Vector2i(5, 8)
+lone_tree_coords = Vector2i(4, 0)
 y_sort_enabled = true
 tile_set = ExtResource("1_ejeae")
