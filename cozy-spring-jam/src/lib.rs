@@ -1,5 +1,6 @@
 use godot::prelude::*;
 
+mod utils;
 #[derive(GodotClass)]
 #[class(base=CharacterBody2D)]
 struct Player {
