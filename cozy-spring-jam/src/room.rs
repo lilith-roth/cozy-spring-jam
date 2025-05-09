@@ -87,9 +87,6 @@ impl<'a> GrowthField<'a> {
         let x = x as f32;
         let y = y as f32;
 
-        let noise = self.get_noise_component(x, y);
-        godot_print!("{noise}");
-
         (self.get_const_component(x, y) + self.get_noise_component(x, y)).clamp(-1.0, 1.0)
     }
 }
@@ -98,14 +95,8 @@ impl<'a> GrowthField<'a> {
 #[repr(i32)]
 enum WallTile {
     #[default]
-    Tree = 0,
-}
-
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
-enum Tile {
-    #[default]
-    Empty,
-    Wall(WallTile),
+    Clear,
+    Wall,
 }
 
 #[derive(GodotClass)]
@@ -114,25 +105,46 @@ struct WallsLayer {
     #[export]
     terrain_set: i32,
 
+    #[export]
+    wall_terrain: i32,
+
+    #[export]
+    empty_tile: Vector2i,
+
     base: Base<TileMapLayer>,
 }
 
 impl WallsLayer {
-    fn set_tiles(&mut self, grid: &Grid<Tile>) {
+    fn set_tiles(&mut self, grid: &Grid<WallTile>) {
         let mut regions: HashMap<WallTile, Array<Vector2i>> = HashMap::new();
         for (pos, tile) in grid {
-            let Tile::Wall(tile) = tile else {
-                continue;
-            };
             regions.entry(*tile).or_default().push_front(pos);
         }
 
         self.base_mut().clear();
-        let terrain_set = self.terrain_set;
         for (tile, cells) in regions {
-            self.base_mut()
-                .set_cells_terrain_connect(&cells, terrain_set, tile as i32);
+            match tile {
+                WallTile::Wall => self.place_walls(&cells),
+                WallTile::Clear => self.place_clear(&cells),
+            }
         }
+    }
+
+    fn place_clear(&mut self, cells: &Array<Vector2i>) {
+        let empty_tile = self.empty_tile;
+        for pos in cells.iter_shared() {
+            self.base_mut()
+                .set_cell_ex(pos)
+                .atlas_coords(empty_tile)
+                .done();
+        }
+    }
+
+    fn place_walls(&mut self, cells: &Array<Vector2i>) {
+        let terrain_set = self.terrain_set;
+        let wall_terrain = self.wall_terrain;
+        self.base_mut()
+            .set_cells_terrain_connect(&cells, terrain_set, wall_terrain);
     }
 }
 
@@ -180,7 +192,7 @@ impl Room {
             &self.params,
         );
 
-        let mut grid: Grid<Tile> = Grid::new(self.width as usize, self.height as usize);
+        let mut grid: Grid<WallTile> = Grid::new(self.width as usize, self.height as usize);
 
         self.place_walls(&mut grid, &growth);
 
@@ -189,15 +201,18 @@ impl Room {
         }
     }
 
-    fn place_walls(&self, grid: &mut Grid<Tile>, growth: &GrowthField) {
+    fn place_walls(&self, grid: &mut Grid<WallTile>, growth: &GrowthField) {
         for y in 0..self.height {
             let is_vertical_edge = y == 0 || y == self.height - 1;
             for x in 0..self.width {
+                let pos = Vector2i::new(x, y);
+                grid.set(pos, WallTile::Clear);
+
                 let is_edge = is_vertical_edge || x == 0 || x == self.width - 1;
                 let growth_factor = growth.get_growth_factor(x as usize, y as usize);
 
                 if is_edge || growth_factor >= self.params.tree_cutoff {
-                    grid.set(Vector2i::new(x, y), Tile::Wall(WallTile::Tree));
+                    grid.set(pos, WallTile::Wall);
                 }
             }
         }

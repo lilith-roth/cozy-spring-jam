@@ -9,5 +9,6 @@ height = 11
 y_sort_enabled = true
 
 [node name="WallsLayer" type="WallsLayer" parent="."]
+empty_tile = Vector2i(1, 2)
 y_sort_enabled = true
 tile_set = ExtResource("1_ejeae")
