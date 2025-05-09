@@ -1,7 +1,7 @@
-use godot::builtin::{real, Vector2};
+use godot::builtin::{Vector2, real};
 use godot::classes::{CharacterBody2D, ICharacterBody2D, NavigationAgent2D, Node};
 use godot::obj::{Base, Gd, WithBaseField};
-use godot::prelude::{godot_api, GodotClass};
+use godot::prelude::{GodotClass, godot_api};
 
 #[derive(GodotClass)]
 #[class(base=CharacterBody2D)]
@@ -23,14 +23,14 @@ impl Enemy {
         if dir > 0.0 && root_scale.x < 0.0 {
             self.base_mut().set_scale(Vector2 {
                 x: 1.0,
-                y: root_scale.y
+                y: root_scale.y,
             });
             self.frames_since_facing_update = 0;
         }
         if dir < 0.0 && root_scale.x > 0.0 {
             self.base_mut().set_scale(Vector2 {
                 x: -1.0,
-                y: root_scale.y
+                y: root_scale.y,
             });
             self.frames_since_facing_update = 0;
         }
@@ -56,12 +56,14 @@ impl Enemy {
                 let current_pos: Vector2 = self.base_mut().get_global_position();
                 let next_path_pos: Vector2 = nav_agent_node.get_next_path_position();
 
-                if current_pos.eq(&next_path_pos)  { return; }
-                self.base_mut().set_velocity(current_pos.direction_to(next_path_pos) * nav_speed);
+                if current_pos.eq(&next_path_pos) {
+                    return;
+                }
+                self.base_mut()
+                    .set_velocity(current_pos.direction_to(next_path_pos) * nav_speed);
                 self.base_mut().move_and_slide();
             }
         }
-
     }
 }
 
@@ -74,6 +76,9 @@ impl ICharacterBody2D for Enemy {
             frames_since_facing_update: 0,
             base,
         }
-    }    
-}
+    }
 
+    fn ready(&mut self) {
+        self.base_mut().set_y_sort_enabled(true);
+    }
+}

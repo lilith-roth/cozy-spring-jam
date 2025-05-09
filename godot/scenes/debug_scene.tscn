@@ -12,9 +12,11 @@ position = Vector2(155, 92)
 
 [node name="WallsScene" parent="." instance=ExtResource("1_n1i7m")]
 
-[node name="npcs" type="Node" parent="."]
+[node name="npcs" type="Node2D" parent="."]
+y_sort_enabled = true
 
 [node name="BasicMeleeEnemy" parent="npcs" instance=ExtResource("4_3uthi")]
+y_sort_enabled = true
 position = Vector2(303, 204)
 collision_layer = 1
 collision_mask = 1
