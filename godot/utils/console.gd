@@ -4,13 +4,12 @@ extends Node
 var basic_melee_enemy: PackedScene
 
 func _ready() -> void:
-	print("Loading console")
 	basic_melee_enemy = preload("res://scenes/npcs/enemies/basic_melee_enemy.tscn")
 	LimboConsole.register_command(spawn_enemy)
 
 
 func spawn_enemy(position_x: int, position_y: int) -> void:
-	var enemy_instance: RigidBody2D = basic_melee_enemy.instantiate()
+	var enemy_instance: Enemy = basic_melee_enemy.instantiate()
 	enemy_instance.position = Vector2()
 	var npc_node = get_tree().get_current_scene().get_node("/root/npcs")
 	if npc_node == null:
