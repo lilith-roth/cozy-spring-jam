@@ -18,6 +18,8 @@ config/icon="res://icon.svg"
 [autoload]
 
 UserSettings="*res://settings/user_settings.gd"
+LimboConsole="*res://addons/limbo_console/limbo_console.gd"
+Console="*res://utils/console.gd"
 
 [display]
 
@@ -27,6 +29,10 @@ window/size/window_width_override=1920
 window/size/window_height_override=1080
 window/stretch/mode="canvas_items"
 window/stretch/aspect="keep_height"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/limbo_console/plugin.cfg")
 
 [gui]
 
@@ -86,10 +92,20 @@ pause={
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194305,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
 ]
 }
+limbo_console_toggle={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":96,"physical_keycode":0,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
 
 [internationalization]
 
 locale/translations=PackedStringArray("res://i18n/translation.de.translation", "res://i18n/translation.en.translation")
+
+[limbo_ai]
+
+behavior_tree/behavior_tree_default_dir="res://behavior/trees"
+behavior_tree/user_task_dirs=PackedStringArray("res://behavior/tasks")
 
 [rendering]
 
