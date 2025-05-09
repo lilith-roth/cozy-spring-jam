@@ -30,8 +30,6 @@ func _exit() -> void:
 
 # Called each time this task is ticked (aka executed).
 func _tick(_delta: float) -> Status:
-	#if nav_agent.target_position == Vector2.ZERO:
-		#return FAILURE
 	if nav_agent.is_navigation_finished():
 		return SUCCESS
 	agent.move_towards_target()

@@ -1,6 +1,5 @@
 use godot::builtin::{real, Vector2};
 use godot::classes::{CharacterBody2D, ICharacterBody2D, NavigationAgent2D, Node};
-use godot::global::godot_print;
 use godot::obj::{Base, Gd, WithBaseField};
 use godot::prelude::{godot_api, GodotClass};
 
@@ -12,7 +11,6 @@ struct Enemy {
     #[export]
     speed: f32,
     frames_since_facing_update: u16,
-    moved_this_frame: bool,
     base: Base<CharacterBody2D>,
 }
 
@@ -49,24 +47,17 @@ impl Enemy {
 
     #[func]
     fn move_towards_target(&mut self) {
-        // godot_print!("MOVING!!");
         let nav_agent_raw: Option<Gd<Node>> = self.base_mut().find_child("NavigationAgent2D");
         match nav_agent_raw {
             None => panic!("An NPC needs a NavigationAgent2D for navigation!"),
             Some(nav_agent) => {
-                // godot_print!("some");
                 let nav_speed = self.speed;
-
                 let mut nav_agent_node: Gd<NavigationAgent2D> = nav_agent.cast();
-                // godot_print!("cast");
                 let current_pos: Vector2 = self.base_mut().get_global_position();
                 let next_path_pos: Vector2 = nav_agent_node.get_next_path_position();
-                
-                godot_print!("enemy moving from {:?} to {:?} - goal {:?} - {:?}", 
-                    current_pos, next_path_pos, nav_agent_node.get_target_position(), nav_agent_node.is_target_reachable());
 
                 if current_pos.eq(&next_path_pos)  { return; }
-                nav_agent_node.set_velocity(current_pos.direction_to(next_path_pos) * nav_speed);
+                self.base_mut().set_velocity(current_pos.direction_to(next_path_pos) * nav_speed);
                 self.base_mut().move_and_slide();
             }
         }
@@ -81,15 +72,8 @@ impl ICharacterBody2D for Enemy {
             health: 5,
             speed: 100.0,
             frames_since_facing_update: 0,
-            moved_this_frame: false,
             base,
         }
-    }
-
-    fn physics_process(&mut self, delta: f64) {
-
-        // self.base_mut().move_and_slide();
-    }
-    
+    }    
 }
 
