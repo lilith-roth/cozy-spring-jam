@@ -38,4 +38,3 @@ func _tick(_delta: float) -> Status:
 func actor_setup(target: Node2D):
 	# Wait for the first physics frame so the NavigationServer can sync.
 	nav_agent.set_target_position(target.global_position)
-	print("Set target to " + str(target.global_position))
