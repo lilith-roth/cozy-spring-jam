@@ -1,7 +1,7 @@
 use godot::builtin::Vector2;
 use godot::classes::{CharacterBody2D, ICharacterBody2D, Input};
 use godot::obj::{Base, WithBaseField};
-use godot::prelude::{godot_api, GodotClass};
+use godot::prelude::{GodotClass, godot_api};
 
 #[derive(GodotClass)]
 #[class(base=CharacterBody2D)]
@@ -14,7 +14,7 @@ struct Player {
 #[godot_api]
 impl ICharacterBody2D for Player {
     fn init(base: Base<CharacterBody2D>) -> Self {
-        Self { speed: 300.0, base }
+        Self { speed: 150.0, base }
     }
 
     fn physics_process(&mut self, _delta: f64) {
