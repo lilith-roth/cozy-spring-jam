@@ -1,0 +1,23 @@
+[gd_scene load_steps=3 format=3 uid="uid://cw84ajyk2ltpu"]
+
+[ext_resource type="TileSet" uid="uid://p85q8iw0h88p" path="res://assets/walls.tres" id="1_ejeae"]
+[ext_resource type="TileSet" uid="uid://t4rf4ywc6jpm" path="res://assets/floor.tres" id="2_ep7ff"]
+
+[node name="RoomScene" type="Room" node_paths=PackedStringArray("floor_layer", "walls_layer")]
+floor_layer = NodePath("FloorLayer")
+walls_layer = NodePath("WallsLayer")
+width = 18
+height = 11
+y_sort_enabled = true
+
+[node name="WallsLayer" type="WallsLayer" parent="."]
+tile_source = 1
+clear_coords = Vector2i(5, 8)
+lone_tree_coords = Vector2i(4, 0)
+y_sort_enabled = true
+tile_set = ExtResource("1_ejeae")
+
+[node name="FloorLayer" type="FloorLayer" parent="."]
+grass_coords = Vector2i(3, 0)
+tall_grass_coords = Vector2i(3, 2)
+tile_set = ExtResource("2_ep7ff")

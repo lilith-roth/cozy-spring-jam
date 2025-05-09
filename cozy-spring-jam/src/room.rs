@@ -24,6 +24,8 @@ struct RoomGenParams {
     tree_growth_cutoff: f32,
     lone_tree_growth_cutoff: f32,
     lone_tree_special_cutoff: f32,
+    grass_growth_cutoff: f32,
+    tall_grass_growth_cutoff: f32,
 }
 
 impl Default for RoomGenParams {
@@ -42,6 +44,8 @@ impl Default for RoomGenParams {
             tree_growth_cutoff: 0.6,
             lone_tree_growth_cutoff: 0.4,
             lone_tree_special_cutoff: 0.4,
+            grass_growth_cutoff: 0.0,
+            tall_grass_growth_cutoff: 0.2,
         }
     }
 }
@@ -123,8 +127,87 @@ impl<'a> GrowthField<'a> {
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
-#[repr(i32)]
-enum Tile {
+enum FloorTile {
+    #[default]
+    None,
+    Dirt,
+    Grass,
+    TallGrass,
+}
+
+#[derive(GodotClass)]
+#[class(base=TileMapLayer, init)]
+struct FloorLayer {
+    #[export]
+    dirt_terrain_set: i32,
+
+    #[export]
+    dirt_terrain: i32,
+
+    #[export]
+    tile_source: i32,
+
+    #[export]
+    grass_coords: Vector2i,
+
+    #[export]
+    tall_grass_coords: Vector2i,
+
+    base: Base<TileMapLayer>,
+}
+
+impl FloorLayer {
+    fn set_tiles(&mut self, grid: &Grid<FloorTile>) {
+        self.base_mut().clear();
+
+        let mut regions: HashMap<FloorTile, Array<Vector2i>> = HashMap::new();
+        for (pos, tile) in grid {
+            match tile {
+                FloorTile::None => (),
+                FloorTile::Grass => self.place_grass(pos),
+                FloorTile::TallGrass => self.place_tall_grass(pos),
+                FloorTile::Dirt => regions.entry(*tile).or_default().push_front(pos),
+            }
+        }
+
+        for (tile, cells) in regions {
+            match tile {
+                FloorTile::Dirt => self.place_dirt(&cells),
+                _ => (),
+            }
+        }
+    }
+
+    fn place_grass(&mut self, pos: Vector2i) {
+        let source = self.tile_source;
+        let coords = self.grass_coords;
+        self.base_mut()
+            .set_cell_ex(pos)
+            .source_id(source)
+            .atlas_coords(coords)
+            .done();
+    }
+
+    fn place_tall_grass(&mut self, pos: Vector2i) {
+        let source = self.tile_source;
+        let coords = self.tall_grass_coords;
+        self.base_mut()
+            .set_cell_ex(pos)
+            .source_id(source)
+            .atlas_coords(coords)
+            .done();
+    }
+
+    fn place_dirt(&mut self, cells: &Array<Vector2i>) {
+        let terrain_set = self.dirt_terrain_set;
+        let terrain = self.dirt_terrain;
+        self.base_mut()
+            .set_cells_terrain_connect(&cells, terrain_set, terrain);
+    }
+}
+
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
+enum WallTile {
     #[default]
     Clear,
     Wall,
@@ -153,21 +236,21 @@ struct WallsLayer {
 }
 
 impl WallsLayer {
-    fn set_tiles(&mut self, grid: &Grid<Tile>) {
+    fn set_tiles(&mut self, grid: &Grid<WallTile>) {
         self.base_mut().clear();
 
-        let mut regions: HashMap<Tile, Array<Vector2i>> = HashMap::new();
+        let mut regions: HashMap<WallTile, Array<Vector2i>> = HashMap::new();
         for (pos, tile) in grid {
             match tile {
-                Tile::Clear => self.place_clear(pos),
-                Tile::LoneTree => self.place_lone_tree(pos),
-                Tile::Wall => regions.entry(*tile).or_default().push_front(pos),
+                WallTile::Clear => self.place_clear(pos),
+                WallTile::LoneTree => self.place_lone_tree(pos),
+                WallTile::Wall => regions.entry(*tile).or_default().push_front(pos),
             }
         }
 
         for (tile, cells) in regions {
             match tile {
-                Tile::Wall => self.place_walls(&cells),
+                WallTile::Wall => self.place_walls(&cells),
                 _ => (),
             }
         }
@@ -205,6 +288,9 @@ impl WallsLayer {
 #[class(base=Node2D)]
 struct Room {
     #[export]
+    floor_layer: Option<Gd<FloorLayer>>,
+
+    #[export]
     walls_layer: Option<Gd<WallsLayer>>,
 
     #[export]
@@ -222,6 +308,7 @@ struct Room {
 impl INode2D for Room {
     fn init(base: Base<Node2D>) -> Self {
         Self {
+            floor_layer: None,
             walls_layer: None,
             width: 0,
             height: 0,
@@ -246,17 +333,46 @@ impl Room {
         );
         let special = SpecialField::new(seed, &self.params);
 
-        let mut grid: Grid<Tile> = Grid::new(self.width as usize, self.height as usize);
+        let mut floor_grid: Grid<FloorTile> = Grid::new(self.width as usize, self.height as usize);
+        self.generate_floor(&mut floor_grid, &growth);
 
-        self.place_special(&mut grid, &growth, &special);
-        self.place_walls(&mut grid, &growth);
+        let mut wall_grid: Grid<WallTile> = Grid::new(self.width as usize, self.height as usize);
+
+        self.place_special(&mut wall_grid, &growth, &special);
+        self.place_walls(&mut wall_grid, &growth);
+
+        if let Some(floor_layer) = &mut self.floor_layer {
+            floor_layer.bind_mut().set_tiles(&floor_grid);
+        }
 
         if let Some(walls_layer) = &mut self.walls_layer {
-            walls_layer.bind_mut().set_tiles(&grid);
+            walls_layer.bind_mut().set_tiles(&wall_grid);
         }
     }
 
-    fn place_special(&self, grid: &mut Grid<Tile>, growth: &GrowthField, special: &SpecialField) {
+    fn generate_floor(&self, grid: &mut Grid<FloorTile>, growth: &GrowthField) {
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let pos = Vector2i::new(x, y);
+                let growth_factor = growth.get_growth_factor(x as usize, y as usize);
+
+                if growth_factor >= self.params.tall_grass_growth_cutoff {
+                    grid.set(pos, FloorTile::TallGrass);
+                } else if growth_factor >= self.params.grass_growth_cutoff {
+                    grid.set(pos, FloorTile::Grass);
+                } else {
+                    grid.set(pos, FloorTile::Dirt);
+                }
+            }
+        }
+    }
+
+    fn place_special(
+        &self,
+        grid: &mut Grid<WallTile>,
+        growth: &GrowthField,
+        special: &SpecialField,
+    ) {
         for y in 0..self.height {
             for x in 0..self.width {
                 let pos = Vector2i::new(x, y);
@@ -266,13 +382,13 @@ impl Room {
                 if special_factor >= self.params.lone_tree_special_cutoff
                     && growth_factor >= self.params.lone_tree_growth_cutoff
                 {
-                    grid.set(pos, Tile::LoneTree);
+                    grid.set(pos, WallTile::LoneTree);
                 }
             }
         }
     }
 
-    fn place_walls(&self, grid: &mut Grid<Tile>, growth: &GrowthField) {
+    fn place_walls(&self, grid: &mut Grid<WallTile>, growth: &GrowthField) {
         for y in 0..self.height {
             let is_vertical_edge = y == 0 || y == self.height - 1;
             for x in 0..self.width {
@@ -281,7 +397,7 @@ impl Room {
                 let growth_factor = growth.get_growth_factor(x as usize, y as usize);
 
                 if is_edge || growth_factor >= self.params.tree_growth_cutoff {
-                    grid.set(pos, Tile::Wall);
+                    grid.set(pos, WallTile::Wall);
                 }
             }
         }

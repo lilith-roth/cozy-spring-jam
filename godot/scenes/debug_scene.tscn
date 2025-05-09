@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://bx5n8qu5jtpru"]
 
-[ext_resource type="PackedScene" uid="uid://cw84ajyk2ltpu" path="res://scenes/walls_scene.tscn" id="1_n1i7m"]
+[ext_resource type="PackedScene" uid="uid://cw84ajyk2ltpu" path="res://scenes/room_scene.tscn" id="1_n1i7m"]
 [ext_resource type="PackedScene" uid="uid://bgwatioscnv6g" path="res://scenes/player_scene.tscn" id="2_6l2vu"]
 [ext_resource type="PackedScene" uid="uid://uy4pxcfg127h" path="res://scenes/npcs/enemies/basic_melee_enemy.tscn" id="4_3uthi"]
 
