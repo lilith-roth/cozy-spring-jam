@@ -1,0 +1,35 @@
+[gd_scene load_steps=6 format=3 uid="uid://uy4pxcfg127h"]
+
+[ext_resource type="Texture2D" uid="uid://c6fi7b1nhp0jq" path="res://assets/npcs/enemy_slime.png" id="1_8r5q3"]
+[ext_resource type="BehaviorTree" uid="uid://d02e70bd5jm3k" path="res://behavior/trees/enemy_melee.tres" id="2_6n6l3"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_xyd4o"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_8r5q3")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_8r5q3"]
+radius = 13.0
+
+[sub_resource type="BlackboardPlan" id="BlackboardPlan_8r5q3"]
+
+[node name="BasicMeleeEnemy" type="Enemy"]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_xyd4o")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 3)
+shape = SubResource("CircleShape2D_8r5q3")
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]
+
+[node name="BehaviorTree" type="BTPlayer" parent="."]
+behavior_tree = ExtResource("2_6n6l3")
+blackboard_plan = SubResource("BlackboardPlan_8r5q3")
