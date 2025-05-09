@@ -33,3 +33,5 @@ shape = SubResource("CircleShape2D_8r5q3")
 [node name="BehaviorTree" type="BTPlayer" parent="."]
 behavior_tree = ExtResource("2_6n6l3")
 blackboard_plan = SubResource("BlackboardPlan_8r5q3")
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]

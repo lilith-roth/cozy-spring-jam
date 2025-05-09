@@ -70,10 +70,3 @@ func _get_desired_position(target: Node2D) -> Vector2:
 	var desired_pos: Vector2 = target.global_position
 	desired_pos.x += approach_distance * side
 	return desired_pos
-
-
-## Select an intermidiate waypoint towards the desired position.
-func _select_new_waypoint(desired_position: Vector2) -> void:
-	var distance_vector: Vector2 = desired_position - agent.global_position
-	var angle_variation: float = randf_range(-0.2, 0.2)
-	_waypoint = agent.global_position + distance_vector.limit_length(150.0).rotated(angle_variation)
