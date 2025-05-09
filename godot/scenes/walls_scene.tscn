@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://cw84ajyk2ltpu"]
 
-[ext_resource type="TileSet" uid="uid://cujrhjg85cid5" path="res://assets/walls.tres" id="1_ejeae"]
+[ext_resource type="TileSet" uid="uid://p85q8iw0h88p" path="res://assets/walls.tres" id="1_ejeae"]
 
 [node name="WallsScene" type="Room" node_paths=PackedStringArray("walls_layer")]
 walls_layer = NodePath("WallsLayer")

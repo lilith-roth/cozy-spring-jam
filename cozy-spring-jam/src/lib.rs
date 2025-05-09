@@ -1,19 +1,11 @@
 mod player;
 mod enemy;
 
+use godot::classes::CharacterBody2D;
 use godot::prelude::*;
 
 mod room;
 mod utils;
-
-#[derive(GodotClass)]
-#[class(base=CharacterBody2D)]
-struct Player {
-    #[export]
-    speed: f32,
-    base: Base<CharacterBody2D>,
-}
-
 
 struct MyExtension;
 
