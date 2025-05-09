@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://bgwatioscnv6g" path="res://scenes/player_scene.tscn" id="2_6l2vu"]
 
 [node name="DebugScene" type="Node2D"]
+y_sort_enabled = true
 
 [node name="WallsScene" parent="." instance=ExtResource("1_n1i7m")]
 
