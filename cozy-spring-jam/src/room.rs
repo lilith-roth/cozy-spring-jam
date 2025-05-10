@@ -26,6 +26,7 @@ struct RoomGenParams {
     lone_tree_special_cutoff: f32,
     grass_growth_cutoff: f32,
     tall_grass_growth_cutoff: f32,
+    exit_size: u32,
 }
 
 impl Default for RoomGenParams {
@@ -46,8 +47,16 @@ impl Default for RoomGenParams {
             lone_tree_special_cutoff: 0.4,
             grass_growth_cutoff: 0.0,
             tall_grass_growth_cutoff: 0.2,
+            exit_size: 2,
         }
     }
+}
+
+struct RoomLayout {
+    exit_top: bool,
+    exit_bottom: bool,
+    exit_left: bool,
+    exit_right: bool,
 }
 
 struct SpecialField<'a> {
@@ -74,13 +83,21 @@ impl<'a> SpecialField<'a> {
 
 struct GrowthField<'a> {
     params: &'a RoomGenParams,
+    layout: &'a RoomLayout,
     width: f32,
     height: f32,
     noise: Gd<FastNoiseLite>,
+    cache: HashMap<(usize, usize), f32>,
 }
 
 impl<'a> GrowthField<'a> {
-    fn new(width: usize, height: usize, seed: u32, params: &'a RoomGenParams) -> Self {
+    fn new(
+        width: usize,
+        height: usize,
+        seed: u32,
+        params: &'a RoomGenParams,
+        layout: &'a RoomLayout,
+    ) -> Self {
         let mut noise = FastNoiseLite::new_gd();
         noise.set_noise_type(NoiseType::PERLIN);
         noise.set_seed(seed as i32);
@@ -90,39 +107,88 @@ impl<'a> GrowthField<'a> {
         noise.set_fractal_gain(params.noise_fractal_gain);
         Self {
             params,
+            layout,
             width: width as f32 - 1.0,
             height: height as f32 - 1.0,
             noise,
+            cache: HashMap::new(),
         }
     }
 
-    fn get_edge_dist(&self, x: f32, y: f32) -> f32 {
+    fn get_edge_dist(&self, pos: Vector2) -> f32 {
         let half_width = self.width / 2.0;
         let half_height = self.height / 2.0;
 
-        let x_dist = (half_width - f32::abs(x - half_width)).max(0.0);
-        let y_dist = (half_height - f32::abs(y - half_height)).max(0.0);
+        let x_dist = (half_width - f32::abs(pos.x - half_width)).max(0.0);
+        let y_dist = (half_height - f32::abs(pos.y - half_height)).max(0.0);
 
         f32::min(x_dist, y_dist)
     }
 
-    fn get_const_component(&self, x: f32, y: f32) -> f32 {
-        let edge_dist = self.get_edge_dist(x, y);
+    fn is_on_critical_path(&self, pos_from_origin: Vector2, path: Vector2) -> bool {
+        let path_dir = path.normalized();
+        let dist_along_path = pos_from_origin.dot(path_dir);
+        if dist_along_path.is_sign_negative() {
+            return false;
+        }
+
+        let path_proportion = dist_along_path / path.length();
+        let dist_to_center_line = (pos_from_origin - dist_along_path * path_dir).length();
+
+        dist_to_center_line <= path_proportion * self.params.exit_size as f32
+    }
+
+    fn is_in_critical_section(&self, pos: Vector2) -> bool {
+        let origin = Vector2::new(self.width, self.height) / 2.0;
+        let pos_from_origin = pos - origin;
+
+        let path_to_bottom = Vector2::new(0.0, self.height) / 2.0;
+        let path_to_right = Vector2::new(self.width, 0.0) / 2.0;
+
+        if self.layout.exit_top && self.is_on_critical_path(pos_from_origin, -path_to_bottom) {
+            return true;
+        }
+        if self.layout.exit_bottom && self.is_on_critical_path(pos_from_origin, path_to_bottom) {
+            return true;
+        }
+        if self.layout.exit_left && self.is_on_critical_path(pos_from_origin, -path_to_right) {
+            return true;
+        }
+        if self.layout.exit_right && self.is_on_critical_path(pos_from_origin, path_to_right) {
+            return true;
+        }
+        false
+    }
+
+    fn get_const_component(&self, pos: Vector2) -> f32 {
+        let edge_dist = self.get_edge_dist(pos);
 
         (self.params.edge_growth * (1.0 - edge_dist * self.params.growth_falloff))
             .max(self.params.center_growth)
     }
 
-    fn get_noise_component(&self, x: f32, y: f32) -> f32 {
-        self.params.growth_noise_amplitude * self.noise.get_noise_2d(x, y)
+    fn get_noise_component(&self, pos: Vector2) -> f32 {
+        self.params.growth_noise_amplitude * self.noise.get_noise_2d(pos.x, pos.y)
             + self.params.growth_noise_bias
     }
 
-    fn get_growth_factor(&self, x: usize, y: usize) -> f32 {
-        let x = x as f32;
-        let y = y as f32;
+    fn compute_growth_factor(&self, pos: Vector2) -> f32 {
+        if self.is_in_critical_section(pos) {
+            return f32::NEG_INFINITY;
+        }
 
-        (self.get_const_component(x, y) + self.get_noise_component(x, y)).clamp(-1.0, 1.0)
+        (self.get_const_component(pos) + self.get_noise_component(pos)).clamp(-1.0, 1.0)
+    }
+
+    fn get_growth_factor(&mut self, x: usize, y: usize) -> f32 {
+        let pos = Vector2::new(x as f32, y as f32);
+
+        if let Some(cached_value) = self.cache.get(&(x, y)) {
+            return *cached_value;
+        }
+        let value = self.compute_growth_factor(pos);
+        self.cache.insert((x, y), value);
+        value
     }
 }
 
@@ -319,27 +385,34 @@ impl INode2D for Room {
 
     fn ready(&mut self) {
         let mut rng = RandomNumberGenerator::new_gd();
-        self.generate(rng.randi());
+        let layout = RoomLayout {
+            exit_top: rng.randi() % 2 == 0,
+            exit_left: rng.randi() % 2 == 0,
+            exit_bottom: rng.randi() % 2 == 0,
+            exit_right: rng.randi() % 2 == 0,
+        };
+        self.generate(rng.randi(), &layout);
     }
 }
 
 impl Room {
-    fn generate(&mut self, seed: u32) {
-        let growth = GrowthField::new(
+    fn generate(&mut self, seed: u32, layout: &RoomLayout) {
+        let mut growth = GrowthField::new(
             self.width as usize,
             self.height as usize,
             seed,
             &self.params,
+            &layout,
         );
         let special = SpecialField::new(seed, &self.params);
 
         let mut floor_grid: Grid<FloorTile> = Grid::new(self.width as usize, self.height as usize);
-        self.generate_floor(&mut floor_grid, &growth);
+        self.generate_floor(&mut floor_grid, &mut growth);
 
         let mut wall_grid: Grid<WallTile> = Grid::new(self.width as usize, self.height as usize);
 
-        self.place_special(&mut wall_grid, &growth, &special);
-        self.place_walls(&mut wall_grid, &growth);
+        self.place_special(&mut wall_grid, &mut growth, &special);
+        self.place_walls(&mut wall_grid, &mut growth, &layout);
 
         if let Some(floor_layer) = &mut self.floor_layer {
             floor_layer.bind_mut().set_tiles(&floor_grid);
@@ -350,7 +423,7 @@ impl Room {
         }
     }
 
-    fn generate_floor(&self, grid: &mut Grid<FloorTile>, growth: &GrowthField) {
+    fn generate_floor(&self, grid: &mut Grid<FloorTile>, growth: &mut GrowthField) {
         for y in 0..self.height {
             for x in 0..self.width {
                 let pos = Vector2i::new(x, y);
@@ -370,7 +443,7 @@ impl Room {
     fn place_special(
         &self,
         grid: &mut Grid<WallTile>,
-        growth: &GrowthField,
+        growth: &mut GrowthField,
         special: &SpecialField,
     ) {
         for y in 0..self.height {
@@ -388,18 +461,49 @@ impl Room {
         }
     }
 
-    fn place_walls(&self, grid: &mut Grid<WallTile>, growth: &GrowthField) {
+    fn place_walls(
+        &self,
+        grid: &mut Grid<WallTile>,
+        growth: &mut GrowthField,
+        layout: &RoomLayout,
+    ) {
         for y in 0..self.height {
-            let is_vertical_edge = y == 0 || y == self.height - 1;
             for x in 0..self.width {
                 let pos = Vector2i::new(x, y);
-                let is_edge = is_vertical_edge || x == 0 || x == self.width - 1;
                 let growth_factor = growth.get_growth_factor(x as usize, y as usize);
 
-                if is_edge || growth_factor >= self.params.tree_growth_cutoff {
+                if self.should_have_edge_wall(x, y, layout)
+                    || growth_factor >= self.params.tree_growth_cutoff
+                {
                     grid.set(pos, WallTile::Wall);
                 }
             }
         }
+    }
+
+    fn should_have_edge_wall(&self, x: i32, y: i32, layout: &RoomLayout) -> bool {
+        let center_dist_x = x - self.width / 2;
+        let center_dist_y = y - self.height / 2;
+        let max_dist = self.params.exit_size as i32 / 2;
+
+        if layout.exit_top && center_dist_x.abs() <= max_dist && center_dist_y.is_negative() {
+            godot_print!("top {x} {y} {center_dist_x} {center_dist_y}");
+            return false;
+        }
+        if layout.exit_bottom && center_dist_x.abs() <= max_dist && center_dist_y.is_positive() {
+            godot_print!("bottom {x} {y} {center_dist_x} {center_dist_y}");
+            return false;
+        }
+        if layout.exit_left && center_dist_y.abs() <= max_dist && center_dist_x.is_negative() {
+            godot_print!("left {x} {y} {center_dist_x} {center_dist_y}");
+            return false;
+        }
+        if layout.exit_right && center_dist_y.abs() <= max_dist && center_dist_x.is_positive() {
+            godot_print!("right {x} {y} {center_dist_x} {center_dist_y}");
+            return false;
+        }
+
+        let is_edge = y == 0 || y == self.height - 1 || x == 0 || x == self.width - 1;
+        is_edge
     }
 }
