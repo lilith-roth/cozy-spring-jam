@@ -1,3 +1,5 @@
+mod health_hud;
+
 use godot::builtin::Vector2;
 use godot::classes::{CharacterBody2D, ICharacterBody2D, Input};
 use godot::obj::{Base, WithBaseField};
@@ -7,14 +9,33 @@ use godot::prelude::{GodotClass, godot_api};
 #[class(base=CharacterBody2D)]
 struct Player {
     #[export]
+    max_health: u16,
+    #[export]
+    health: u16,
+    #[export]
     speed: f32,
+    health_scene: Gd<PackedScene>,
     base: Base<CharacterBody2D>,
+}
+
+impl Player {
+
+    fn draw_health_bar(&mut self) {
+        for i in 0..self.max_health/2 {
+            let new_health_scene = self.health_scene.instantiate().unwrap();
+
+            self.base_mut().add_child(&new_health_scene);
+        }
+    }
 }
 
 #[godot_api]
 impl ICharacterBody2D for Player {
     fn init(base: Base<CharacterBody2D>) -> Self {
-        Self { speed: 150.0, base }
+        let health_scene = load::<PackedScene>("res://ui/hud/health_hud.tscn");
+        let mut player = Self { max_health: 20, health: 20, speed: 150.0, health_scene, base };
+        player.draw_health_bar();
+        player
     }
 
     fn physics_process(&mut self, _delta: f64) {
