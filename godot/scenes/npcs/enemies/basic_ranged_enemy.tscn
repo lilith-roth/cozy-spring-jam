@@ -43,7 +43,6 @@ behavior_tree = ExtResource("2_1y62i")
 blackboard_plan = SubResource("BlackboardPlan_8r5q3")
 
 [node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
-path_desired_distance = 5.0
 target_desired_distance = 40.0
 path_postprocessing = 1
 avoidance_enabled = true

@@ -1,9 +1,9 @@
+use crate::gun::Gun;
 use godot::builtin::{Vector2, real};
 use godot::classes::{CharacterBody2D, ICharacterBody2D, NavigationAgent2D, Node};
 use godot::global::godot_print;
 use godot::obj::{Base, Gd, WithBaseField};
 use godot::prelude::{GodotClass, godot_api};
-use crate::gun::Gun;
 
 #[derive(GodotClass)]
 #[class(base=CharacterBody2D)]

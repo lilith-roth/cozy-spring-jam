@@ -22,6 +22,8 @@ output_var = &"target"
 [sub_resource type="BTAction" id="BTAction_8ptwv"]
 script = ExtResource("2_pisv7")
 target_var = &"target"
+distance_min = 100.0
+distance_max = 200.0
 
 [sub_resource type="BTTimeLimit" id="BTTimeLimit_0xar2"]
 time_limit = 2.0
