@@ -1,6 +1,7 @@
 mod health_hud;
 
 use crate::bullet::{BulletManager, BulletParams};
+use crate::gun::Gun;
 use crate::player::health_hud::HealthHud;
 use godot::builtin::{Vector2, real};
 use godot::classes::{
@@ -21,8 +22,9 @@ struct Player {
     health: u16,
     #[export]
     speed: f32,
+
     #[export]
-    bullet_spawner: Option<Gd<BulletManager>>,
+    gun: Option<Gd<Gun>>,
 
     health_scene: Gd<PackedScene>,
     frames_since_last_healthbar_update: u16,
@@ -113,27 +115,21 @@ impl Player {
         self.base_mut().move_and_slide();
     }
 
-    const BULLET_SPAWN_DISTANCE: f32 = 24.0;
+    const GUN_DISTANCE: f32 = 24.0;
 
-    fn shoot(&self) {
+    fn position_gun(&self) {
         let Some(viewport) = self.base().get_viewport() else {
             return;
         };
         let self_pos = self.base().get_position();
         let mouse_pos = viewport.get_mouse_position();
-        let bullet_dir = (mouse_pos - self_pos).normalized();
+        let facing = (mouse_pos - self_pos).normalized();
+        let facing_rot = f32::atan2(facing.y, facing.x);
+        let gun_pos = self_pos + Self::GUN_DISTANCE * facing;
 
-        if let Some(mut spawner) = self.bullet_spawner.clone() {
-            spawner.bind_mut().spawn_bullet(
-                self_pos + Self::BULLET_SPAWN_DISTANCE * bullet_dir,
-                bullet_dir,
-                BulletParams {
-                    bounces: 5,
-                    lifetime: 5.0,
-                    power: 3.0,
-                    ..BulletParams::default()
-                },
-            );
+        if let Some(mut gun) = self.gun.clone() {
+            gun.set_position(gun_pos);
+            gun.set_rotation(facing_rot);
         }
     }
 }
@@ -148,20 +144,22 @@ impl ICharacterBody2D for Player {
             speed: 150.0,
             health_scene,
             frames_since_last_healthbar_update: 1337,
-            bullet_spawner: None,
+            gun: None,
             base,
         }
     }
 
     fn physics_process(&mut self, _delta: f64) {
         self.update_health_bar();
-
+        self.position_gun();
         self.handle_walk_input()
     }
 
     fn input(&mut self, event: Gd<InputEvent>) {
         if event.is_action_pressed("shoot") {
-            self.shoot();
+            if let Some(gun) = &self.gun {
+                gun.bind().shoot();
+            }
         }
     }
 

@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://pf5dccxmrlrw"]
+
+[ext_resource type="AudioStream" uid="uid://c47t8phn3yrbw" path="res://assets/sfx/shot.wav" id="1_x77fm"]
+
+[node name="Gun" type="Gun" node_paths=PackedStringArray("shoot_sfx")]
+shoot_sfx = NodePath("AudioStreamPlayer2D")
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("1_x77fm")

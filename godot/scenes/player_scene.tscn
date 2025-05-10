@@ -1,13 +1,14 @@
-[gd_scene load_steps=3 format=3 uid="uid://bgwatioscnv6g"]
+[gd_scene load_steps=4 format=3 uid="uid://bgwatioscnv6g"]
 
 [ext_resource type="Texture2D" uid="uid://dmelj2qgr8w7k" path="res://icon.svg" id="1_crmta"]
+[ext_resource type="PackedScene" uid="uid://pf5dccxmrlrw" path="res://scenes/gun.tscn" id="2_vefth"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vefth"]
 size = Vector2(32, 32)
 
-[node name="PlayerScene" type="Player" groups=["player"]]
+[node name="PlayerScene" type="Player" node_paths=PackedStringArray("gun") groups=["player"]]
+gun = NodePath("Gun")
 collision_layer = 2
-collision_mask = 7
 
 [node name="AudioListener2D" type="AudioListener2D" parent="."]
 current = true
@@ -22,3 +23,5 @@ texture = ExtResource("1_crmta")
 [node name="Hud" type="Node" parent="."]
 
 [node name="HealthHuds" type="Node" parent="Hud"]
+
+[node name="Gun" parent="." instance=ExtResource("2_vefth")]

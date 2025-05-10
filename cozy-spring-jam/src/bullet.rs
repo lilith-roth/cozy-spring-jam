@@ -10,9 +10,6 @@ use godot::{
 #[class(base=RigidBody2D)]
 struct Bullet {
     #[export]
-    bullet_spawner: Option<Gd<BulletManager>>,
-
-    #[export]
     animated_sprite: Option<Gd<AnimatedSprite2D>>,
 
     #[export]
@@ -49,7 +46,6 @@ impl IRigidBody2D for Bullet {
     fn init(base: Base<RigidBody2D>) -> Self {
         Self {
             bounce_sfx: None,
-            bullet_spawner: None,
             animated_sprite: None,
             bounces: 0,
             bounce_velocity_preservation: 1.0,
@@ -159,7 +155,7 @@ impl Bullet {
     }
 
     fn emit_explosion(&mut self) {
-        if let Some(mut spawner) = self.bullet_spawner.clone() {
+        if let Some(mut spawner) = BulletManager::for_node(self.base().upcast_ref()) {
             spawner.bind_mut().spawn_explosion(self.position());
         }
     }
@@ -221,6 +217,16 @@ impl BulletManager {
     const BULLET_SCENE: &str = "res://scenes/bullet/bullet.tscn";
     const BULLET_EXPLOSION_SCENE: &str = "res://scenes/bullet/explosion.tscn";
 
+    pub fn for_node(node: &Node) -> Option<Gd<BulletManager>> {
+        let tree = node.get_tree()?;
+        let scene = tree.get_current_scene()?;
+        let result = scene.get_node_or_null("BulletManager").map(Gd::cast);
+        if result.is_none() {
+            godot_error!("No BulletManager found in this scene!");
+        }
+        result
+    }
+
     pub fn spawn_bullet(&mut self, pos: Vector2, direction: Vector2, params: BulletParams) {
         let mut bullet: Gd<Bullet> = self
             .bullet_scene
@@ -231,7 +237,6 @@ impl BulletManager {
 
         {
             let mut bullet_mut = bullet.bind_mut();
-            bullet_mut.set_bullet_spawner(Some(self.to_gd()));
             bullet_mut.set_power(params.power);
             bullet_mut.set_velocity(params.speed * direction);
             bullet_mut.set_bounces(params.bounces);
