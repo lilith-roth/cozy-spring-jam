@@ -107,6 +107,11 @@ locale/translations=PackedStringArray("res://i18n/translation.de.translation", "
 behavior_tree/behavior_tree_default_dir="res://behavior/trees"
 behavior_tree/user_task_dirs=PackedStringArray("res://behavior/tasks")
 
+[physics]
+
+2d/default_gravity=0.0
+2d/default_linear_damp=0.0
+2d/default_angular_damp=0.0
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0

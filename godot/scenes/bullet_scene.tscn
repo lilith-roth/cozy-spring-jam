@@ -1,0 +1,92 @@
+[gd_scene load_steps=13 format=3 uid="uid://ba2jo3tr3qm77"]
+
+[ext_resource type="Texture2D" uid="uid://cn7kmv84g4ug4" path="res://assets/bullet.png" id="1_bw2vd"]
+[ext_resource type="Texture2D" uid="uid://dx68cphfd700g" path="res://assets/bullet_decay.png" id="1_x4051"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3npik"]
+atlas = ExtResource("1_x4051")
+region = Rect2(0, 0, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hp2ru"]
+atlas = ExtResource("1_x4051")
+region = Rect2(8, 0, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wegmk"]
+atlas = ExtResource("1_x4051")
+region = Rect2(16, 0, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sfht8"]
+atlas = ExtResource("1_x4051")
+region = Rect2(24, 0, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_x4051"]
+atlas = ExtResource("1_bw2vd")
+region = Rect2(0, 0, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0ppkx"]
+atlas = ExtResource("1_bw2vd")
+region = Rect2(8, 0, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5v4yv"]
+atlas = ExtResource("1_bw2vd")
+region = Rect2(16, 0, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xj4ca"]
+atlas = ExtResource("1_bw2vd")
+region = Rect2(24, 0, 8, 8)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_3npik"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3npik")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hp2ru")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wegmk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sfht8")
+}],
+"loop": false,
+"name": &"decay",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_x4051")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0ppkx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5v4yv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xj4ca")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hp2ru"]
+radius = 4.0
+
+[node name="BulletScene" type="Bullet" node_paths=PackedStringArray("animated_sprite")]
+animated_sprite = NodePath("AnimatedSprite2D")
+velocity = Vector2(100, 100)
+mass = 0.001
+gravity_scale = 0.0
+lock_rotation = true
+linear_velocity = Vector2(10, 10)
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_3npik")
+animation = &"decay"
+speed_scale = 3.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_hp2ru")

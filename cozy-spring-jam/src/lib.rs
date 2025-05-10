@@ -1,3 +1,4 @@
+mod bullet;
 mod enemy;
 mod player;
 
