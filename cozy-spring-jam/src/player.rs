@@ -124,7 +124,7 @@ impl Player {
         let bullet_dir = (mouse_pos - self_pos).normalized();
 
         if let Some(mut spawner) = self.bullet_spawner.clone() {
-            spawner.bind_mut().spawn(
+            spawner.bind_mut().spawn_bullet(
                 self_pos + Self::BULLET_SPAWN_DISTANCE * bullet_dir,
                 bullet_dir,
                 BulletParams {

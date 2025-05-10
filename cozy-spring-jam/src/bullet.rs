@@ -1,11 +1,16 @@
 use godot::{
-    classes::{AnimatedSprite2D, CollisionObject2D, IRigidBody2D, RigidBody2D, TileMapLayer},
+    classes::{
+        AnimatedSprite2D, GpuParticles2D, IGpuParticles2D, IRigidBody2D, RigidBody2D, Timer,
+    },
     prelude::*,
 };
 
 #[derive(GodotClass)]
 #[class(base=RigidBody2D)]
 struct Bullet {
+    #[export]
+    bullet_spawner: Option<Gd<BulletSpawner>>,
+
     #[export]
     animated_sprite: Option<Gd<AnimatedSprite2D>>,
 
@@ -30,7 +35,7 @@ struct Bullet {
     #[var]
     age: f32,
 
-    decayed: bool,
+    dead: bool,
 
     base: Base<RigidBody2D>,
 }
@@ -39,6 +44,7 @@ struct Bullet {
 impl IRigidBody2D for Bullet {
     fn init(base: Base<RigidBody2D>) -> Self {
         Self {
+            bullet_spawner: None,
             animated_sprite: None,
             bounces: 0,
             bounce_velocity_preservation: 1.0,
@@ -47,7 +53,7 @@ impl IRigidBody2D for Bullet {
             lifetime: 2.0,
             power: 1.0,
             age: 0.0,
-            decayed: false,
+            dead: false,
             base,
         }
     }
@@ -62,7 +68,7 @@ impl IRigidBody2D for Bullet {
         if let Some(mut anim) = self.animated_sprite.clone() {
             anim.signals()
                 .animation_finished()
-                .connect_obj(&*self, Self::on_animation_finished);
+                .connect_obj(&*self, Self::free_if_dead);
         }
         self.signals()
             .body_entered()
@@ -70,9 +76,6 @@ impl IRigidBody2D for Bullet {
     }
 
     fn physics_process(&mut self, delta: f64) {
-        let scale = self.get_scale();
-        self.base_mut().set_scale(Vector2::ONE * scale);
-
         self.age += delta as f32;
         if self.age > self.lifetime {
             self.decay();
@@ -90,23 +93,27 @@ impl Bullet {
 }
 
 impl Bullet {
-    const MAX_SCALE: f32 = 3.0;
-
     fn on_body_entered(&mut self, node: Gd<Node>) {
+        let mut should_explode = false;
         if node.is_class("TileMapLayer") {
             if self.bounces == 0 {
-                self.impact(node.upcast());
+                should_explode = true;
             } else {
                 self.bounces -= 1;
             }
-            return;
+        } else {
+            should_explode = true;
         }
 
-        self.impact(node);
+        if should_explode {
+            self.impact_explode(node);
+        } else {
+            self.impact(node);
+        }
     }
 
-    fn on_animation_finished(&mut self) {
-        if self.decayed {
+    fn free_if_dead(&mut self) {
+        if self.dead {
             self.base_mut().queue_free();
         }
     }
@@ -119,6 +126,13 @@ impl Bullet {
         let pos = self.position();
         let power = self.get_power();
         self.signals().impacted().emit(pos, power, &node);
+    }
+
+    fn impact_explode(&mut self, node: Gd<Node>) {
+        self.base_mut().hide();
+        self.base_mut().set_linear_velocity(Vector2::ZERO);
+        self.emit_explosion();
+        self.impact(node);
         self.base_mut().queue_free();
     }
 
@@ -126,7 +140,7 @@ impl Bullet {
         let pos = self.position();
         self.signals().decayed().emit(pos);
         self.play_animation("decay");
-        self.decayed = true;
+        self.dead = true;
         if self.animated_sprite.is_none() {
             self.base_mut().queue_free();
         }
@@ -138,8 +152,10 @@ impl Bullet {
         }
     }
 
-    fn get_scale(&self) -> f32 {
-        (Self::MAX_SCALE - (Self::MAX_SCALE - 1.0) / self.power).max(1.0)
+    fn emit_explosion(&mut self) {
+        if let Some(mut spawner) = self.bullet_spawner.clone() {
+            spawner.bind_mut().spawn_explosion(self.position());
+        }
     }
 }
 
@@ -170,6 +186,7 @@ impl Default for BulletParams {
 #[class(base=Node2D)]
 pub struct BulletSpawner {
     bullet_scene: Gd<PackedScene>,
+    bullet_explosion_scene: Gd<PackedScene>,
     base: Base<Node2D>,
 }
 
@@ -178,6 +195,7 @@ impl INode2D for BulletSpawner {
     fn init(base: Base<Node2D>) -> Self {
         Self {
             bullet_scene: load(Self::BULLET_SCENE),
+            bullet_explosion_scene: load(Self::BULLET_EXPLOSION_SCENE),
             base,
         }
     }
@@ -188,9 +206,10 @@ impl INode2D for BulletSpawner {
 }
 
 impl BulletSpawner {
-    const BULLET_SCENE: &str = "res://scenes/bullet.tscn";
+    const BULLET_SCENE: &str = "res://scenes/bullet/bullet.tscn";
+    const BULLET_EXPLOSION_SCENE: &str = "res://scenes/bullet/explosion.tscn";
 
-    pub fn spawn(&mut self, pos: Vector2, direction: Vector2, params: BulletParams) {
+    pub fn spawn_bullet(&mut self, pos: Vector2, direction: Vector2, params: BulletParams) {
         let mut bullet: Gd<Bullet> = self
             .bullet_scene
             .instantiate()
@@ -200,6 +219,7 @@ impl BulletSpawner {
 
         {
             let mut bullet_mut = bullet.bind_mut();
+            bullet_mut.set_bullet_spawner(Some(self.to_gd()));
             bullet_mut.set_power(params.power);
             bullet_mut.set_velocity(params.speed * direction);
             bullet_mut.set_bounces(params.bounces);
@@ -209,5 +229,43 @@ impl BulletSpawner {
         }
 
         self.base_mut().add_child(&bullet);
+    }
+
+    pub fn spawn_explosion(&mut self, pos: Vector2) {
+        let mut explosion: Gd<BulletExplosion> = self
+            .bullet_explosion_scene
+            .instantiate()
+            .expect("Failed to spawn bullet explosion")
+            .cast();
+        explosion.set_position(pos);
+
+        self.base_mut().add_child(&explosion);
+    }
+}
+
+#[derive(GodotClass)]
+#[class(base=GpuParticles2D, init)]
+pub struct BulletExplosion {
+    #[export]
+    free_timer: Option<Gd<Timer>>,
+    base: Base<GpuParticles2D>,
+}
+
+#[godot_api]
+impl IGpuParticles2D for BulletExplosion {
+    fn ready(&mut self) {
+        self.base_mut().set_emitting(true);
+        if let Some(mut timer) = self.free_timer.clone() {
+            timer
+                .signals()
+                .ready()
+                .connect_obj(&*self, Self::on_timer_ready);
+        }
+    }
+}
+
+impl BulletExplosion {
+    fn on_timer_ready(&mut self) {
+        self.base_mut().queue_free();
     }
 }
