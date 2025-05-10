@@ -6,6 +6,8 @@
 size = Vector2(32, 32)
 
 [node name="PlayerScene" type="Player" groups=["player"]]
+collision_layer = 2
+collision_mask = 7
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_vefth")

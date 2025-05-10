@@ -10,6 +10,9 @@
 script = ExtResource("1_objyc")
 
 [node name="Player" type="Player" parent="."]
+max_health = null
+health = null
+speed = null
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
 shape = SubResource("RectangleShape2D_0oab4")

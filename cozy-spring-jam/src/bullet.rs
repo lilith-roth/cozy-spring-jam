@@ -16,10 +16,16 @@ struct Bullet {
     bounce_velocity_preservation: f32,
 
     #[export]
+    bounce_power_preservation: f32,
+
+    #[export]
     velocity: Vector2,
 
     #[export]
     lifetime: f32,
+
+    #[export]
+    power: f32,
 
     #[var]
     age: f32,
@@ -36,8 +42,10 @@ impl IRigidBody2D for Bullet {
             animated_sprite: None,
             bounces: 0,
             bounce_velocity_preservation: 1.0,
+            bounce_power_preservation: 0.5,
             velocity: Vector2::ZERO,
             lifetime: 2.0,
+            power: 1.0,
             age: 0.0,
             decayed: false,
             base,
@@ -61,8 +69,10 @@ impl IRigidBody2D for Bullet {
         let velocity = self.velocity;
         self.base_mut().set_linear_velocity(velocity);
 
+        let scale = self.get_scale();
+        self.base_mut().set_scale(Vector2::ONE * scale);
+
         self.age += delta as f32;
-        godot_print!("{}", self.age);
         if self.age > self.lifetime {
             self.decay();
         }
@@ -79,6 +89,8 @@ impl Bullet {
 }
 
 impl Bullet {
+    const MAX_SCALE: f32 = 3.0;
+
     fn on_body_entered(&mut self, node: Gd<Node>) {
         todo!()
     }
@@ -107,5 +119,78 @@ impl Bullet {
         if let Some(anim) = &mut self.animated_sprite {
             anim.play_ex().name(name).done();
         }
+    }
+
+    fn get_scale(&self) -> f32 {
+        (Self::MAX_SCALE - (Self::MAX_SCALE - 1.0) / self.power).max(1.0)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct BulletParams {
+    pub power: f32,
+    pub speed: f32,
+    pub bounces: u32,
+    pub bounce_power_preservation: f32,
+    pub bounce_velocity_preservation: f32,
+    pub lifetime: f32,
+}
+
+impl Default for BulletParams {
+    fn default() -> Self {
+        Self {
+            power: 1.0,
+            speed: 400.0,
+            bounces: 0,
+            bounce_velocity_preservation: 1.0,
+            bounce_power_preservation: 1.0,
+            lifetime: 0.2,
+        }
+    }
+}
+
+#[derive(GodotClass)]
+#[class(base=Node2D)]
+pub struct BulletSpawner {
+    bullet_scene: Gd<PackedScene>,
+    base: Base<Node2D>,
+}
+
+#[godot_api]
+impl INode2D for BulletSpawner {
+    fn init(base: Base<Node2D>) -> Self {
+        Self {
+            bullet_scene: load(Self::BULLET_SCENE),
+            base,
+        }
+    }
+
+    fn ready(&mut self) {
+        self.base_mut().set_y_sort_enabled(true);
+    }
+}
+
+impl BulletSpawner {
+    const BULLET_SCENE: &str = "res://scenes/bullet.tscn";
+
+    pub fn spawn(&mut self, pos: Vector2, direction: Vector2, params: BulletParams) {
+        let mut bullet: Gd<Bullet> = self
+            .bullet_scene
+            .instantiate()
+            .expect("Failed to spawn bullet")
+            .cast();
+        bullet.set_position(pos);
+
+        {
+            let mut bullet_mut = bullet.bind_mut();
+            bullet_mut.set_power(params.power);
+            bullet_mut.set_velocity(params.speed * direction);
+            bullet_mut.set_bounces(params.bounces);
+            bullet_mut.set_bounce_velocity_preservation(params.bounce_velocity_preservation);
+            bullet_mut.set_bounce_power_preservation(params.bounce_power_preservation);
+            bullet_mut.set_lifetime(params.lifetime);
+        }
+
+        self.base_mut().add_child(&bullet);
     }
 }

@@ -487,19 +487,15 @@ impl Room {
         let max_dist = self.params.exit_size as i32 / 2;
 
         if layout.exit_top && center_dist_x.abs() <= max_dist && center_dist_y.is_negative() {
-            godot_print!("top {x} {y} {center_dist_x} {center_dist_y}");
             return false;
         }
         if layout.exit_bottom && center_dist_x.abs() <= max_dist && center_dist_y.is_positive() {
-            godot_print!("bottom {x} {y} {center_dist_x} {center_dist_y}");
             return false;
         }
         if layout.exit_left && center_dist_y.abs() <= max_dist && center_dist_x.is_negative() {
-            godot_print!("left {x} {y} {center_dist_x} {center_dist_y}");
             return false;
         }
         if layout.exit_right && center_dist_y.abs() <= max_dist && center_dist_x.is_positive() {
-            godot_print!("right {x} {y} {center_dist_x} {center_dist_y}");
             return false;
         }
 

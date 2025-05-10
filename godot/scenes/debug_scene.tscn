@@ -7,7 +7,11 @@
 [node name="DebugScene" type="Node2D"]
 y_sort_enabled = true
 
-[node name="PlayerScene" parent="." instance=ExtResource("2_6l2vu")]
+[node name="PlayerScene" parent="." node_paths=PackedStringArray("bullet_spawner") instance=ExtResource("2_6l2vu")]
+max_health = null
+health = null
+speed = null
+bullet_spawner = NodePath("../BulletSpawner")
 position = Vector2(155, 92)
 
 [node name="RoomScene" parent="." instance=ExtResource("1_n1i7m")]
@@ -20,3 +24,5 @@ y_sort_enabled = true
 position = Vector2(303, 204)
 collision_layer = 1
 collision_mask = 1
+
+[node name="BulletSpawner" type="BulletSpawner" parent="."]

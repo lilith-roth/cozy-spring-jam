@@ -1,9 +1,11 @@
 mod health_hud;
 
+use crate::bullet::{BulletParams, BulletSpawner};
 use crate::player::health_hud::HealthHud;
 use godot::builtin::{Vector2, real};
 use godot::classes::{
-    CharacterBody2D, Control, ICharacterBody2D, Input, Node, Node2D, PackedScene, TextureRect,
+    CharacterBody2D, Control, ICharacterBody2D, Input, InputEvent, Node, Node2D, PackedScene,
+    TextureRect,
 };
 use godot::global::godot_print;
 use godot::obj::{Base, Gd, WithBaseField};
@@ -19,6 +21,9 @@ struct Player {
     health: u16,
     #[export]
     speed: f32,
+    #[export]
+    bullet_spawner: Option<Gd<BulletSpawner>>,
+
     health_scene: Gd<PackedScene>,
     frames_since_last_healthbar_update: u16,
     base: Base<CharacterBody2D>,
@@ -42,7 +47,6 @@ impl Player {
 
         // Add new heart containers
         for i in hud_node.get_children().len()..expected_amount_health_containers as usize {
-            godot_print!("{:?}", i);
             let node_str = format!("heart_container-{}", i);
             let new_health_scene = self.health_scene.instantiate().unwrap();
             let mut new_health_node: Gd<Control> = new_health_scene.cast();
@@ -108,6 +112,25 @@ impl Player {
         self.base_mut().set_velocity(velocity);
         self.base_mut().move_and_slide();
     }
+
+    const BULLET_SPAWN_DISTANCE: f32 = 24.0;
+
+    fn shoot(&self) {
+        let Some(viewport) = self.base().get_viewport() else {
+            return;
+        };
+        let self_pos = self.base().get_position();
+        let mouse_pos = viewport.get_mouse_position();
+        let bullet_dir = (mouse_pos - self_pos).normalized();
+
+        if let Some(mut spawner) = self.bullet_spawner.clone() {
+            spawner.bind_mut().spawn(
+                self_pos + Self::BULLET_SPAWN_DISTANCE * bullet_dir,
+                bullet_dir,
+                BulletParams::default(),
+            );
+        }
+    }
 }
 
 #[godot_api]
@@ -120,6 +143,7 @@ impl ICharacterBody2D for Player {
             speed: 150.0,
             health_scene,
             frames_since_last_healthbar_update: 1337,
+            bullet_spawner: None,
             base,
         }
     }
@@ -128,6 +152,12 @@ impl ICharacterBody2D for Player {
         self.update_health_bar();
 
         self.handle_walk_input()
+    }
+
+    fn input(&mut self, event: Gd<InputEvent>) {
+        if event.is_action_pressed("shoot") {
+            self.shoot();
+        }
     }
 
     fn ready(&mut self) {}
