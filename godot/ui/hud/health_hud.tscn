@@ -2,7 +2,9 @@
 
 [ext_resource type="Texture2D" uid="uid://c4jdknsyv5dra" path="res://assets/player/heart_full.png" id="1_47v3t"]
 
-[node name="TextureRect" type="HealthHud"]
+[node name="HealthContainer" type="HealthHud"]
 offset_right = 24.0
 offset_bottom = 24.0
 texture = ExtResource("1_47v3t")
+
+[node name="HealthState-FULL" type="Node" parent="."]

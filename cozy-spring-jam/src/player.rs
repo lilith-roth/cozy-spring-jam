@@ -3,11 +3,12 @@ mod health_hud;
 use crate::player::health_hud::HealthHud;
 use godot::builtin::{Vector2, real};
 use godot::classes::{
-    CharacterBody2D, Control, ICharacterBody2D, Input, Node, Node2D, PackedScene,
+    CharacterBody2D, Control, ICharacterBody2D, Input, Node, Node2D, PackedScene, TextureRect,
 };
 use godot::global::godot_print;
 use godot::obj::{Base, Gd, WithBaseField};
 use godot::prelude::{GodotClass, godot_api, load};
+use std::cmp::Ordering;
 
 #[derive(GodotClass)]
 #[class(base=CharacterBody2D)]
@@ -19,7 +20,6 @@ struct Player {
     #[export]
     speed: f32,
     health_scene: Gd<PackedScene>,
-    health_scenes: Vec<Node2D>,
     frames_since_last_healthbar_update: u16,
     base: Base<CharacterBody2D>,
 }
@@ -27,7 +27,7 @@ struct Player {
 impl Player {
     fn update_health_bar(&mut self) {
         self.frames_since_last_healthbar_update += 1;
-        if self.frames_since_last_healthbar_update > 120 {
+        if self.frames_since_last_healthbar_update > 5 {
             self.frames_since_last_healthbar_update = 0;
             return;
         }
@@ -62,15 +62,24 @@ impl Player {
                 .queue_free()
         }
 
-        // Update heart images
+        // Update heart states
         for i in 0..self.max_health {
-            if i < self.health {
-                let health_container: Gd<HealthHud> = hud_node
-                    .get_child((f32::from(i) / 2.0).ceil() as i32)
-                    .expect(":thinking_face:")
-                    .cast();
-                
-            }
+            let health_container: Gd<HealthHud> = hud_node
+                .get_child((f32::from(i) / 2.0).floor() as i32)
+                .expect(":thinking_face:")
+                .cast();
+            let mut heart_state: Gd<Node> = health_container
+                .get_child(0)
+                .expect("You need a HeartState named node with a HeartContainer!");
+            let new_heart_state: &str;
+            match i.cmp(&self.health) {
+                Ordering::Less => new_heart_state = "-FULL",
+                Ordering::Equal => new_heart_state = "-HALF",
+                Ordering::Greater => new_heart_state = "-EMPTY",
+            };
+            let new_heart_state: String =
+                heart_state.get_name().split("-")[0].to_string() + new_heart_state;
+            heart_state.set_name(&new_heart_state);
         }
     }
 
@@ -110,7 +119,6 @@ impl ICharacterBody2D for Player {
             health: 20,
             speed: 150.0,
             health_scene,
-            health_scenes: vec![],
             frames_since_last_healthbar_update: 1337,
             base,
         }
