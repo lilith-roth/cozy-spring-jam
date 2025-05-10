@@ -13,3 +13,7 @@ shape = SubResource("RectangleShape2D_vefth")
 [node name="Sprite2D" type="Sprite2D" parent="."]
 scale = Vector2(0.25, 0.25)
 texture = ExtResource("1_crmta")
+
+[node name="Hud" type="Node" parent="."]
+
+[node name="HealthHuds" type="Node" parent="Hud"]
