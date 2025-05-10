@@ -8,6 +8,8 @@ func _ready() -> void:
 	LimboConsole.register_command(spawn_enemy)
 	LimboConsole.register_command(set_health)
 	LimboConsole.register_command(set_max_health)
+	LimboConsole.register_command(list_npcs)
+	LimboConsole.register_command(damage_npc)
 
 
 func spawn_enemy(position_x: int, position_y: int) -> void:
@@ -29,3 +31,12 @@ func set_health(new_health: int) -> void:
 func set_max_health(new_max_health: int) -> void:
 	var player_node: Player = get_tree().get_current_scene().find_child("PlayerScene")
 	player_node.max_health = new_max_health
+
+func list_npcs() -> void:
+	var npc_list = get_tree().get_nodes_in_group("enemy")
+	for i in range(len(npc_list)):
+		LimboConsole.info("NPC # " + str(i) + ": " + str(npc_list[i]))
+	
+func damage_npc(id: int, amount: int) -> void:
+	var npc_list = get_tree().get_nodes_in_group("enemy")
+	npc_list[id].damage_enemy(amount)

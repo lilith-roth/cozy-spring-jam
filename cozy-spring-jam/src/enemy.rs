@@ -7,7 +7,7 @@ use godot::prelude::{GodotClass, godot_api};
 #[class(base=CharacterBody2D)]
 struct Enemy {
     #[export]
-    health: u16,
+    health: i16,
     #[export]
     speed: f32,
     frames_since_facing_update: u16,
@@ -63,6 +63,14 @@ impl Enemy {
                     .set_velocity(current_pos.direction_to(next_path_pos) * nav_speed);
                 self.base_mut().move_and_slide();
             }
+        }
+    }
+
+    #[func]
+    fn damage_enemy(&mut self, amount: i16) {
+        self.health -= amount;
+        if self.health <= 0 {
+            self.base_mut().queue_free();
         }
     }
 }
