@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://c5p4i0y6c5xgs"]
+
+[ext_resource type="Texture2D" uid="uid://cs7rrew7b6pee" path="res://assets/bullet.png" id="1_bw2vd"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_x4051"]
+radius = 8.0
+
+[node name="BulletScene" type="Bullet"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_x4051")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_bw2vd")

@@ -5,6 +5,7 @@ use godot::prelude::*;
 
 mod room;
 mod utils;
+mod bullet;
 
 struct MyExtension;
 
