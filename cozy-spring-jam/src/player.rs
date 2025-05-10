@@ -1,6 +1,6 @@
 mod health_hud;
 
-use crate::bullet::{BulletParams, BulletSpawner};
+use crate::bullet::{BulletManager, BulletParams};
 use crate::player::health_hud::HealthHud;
 use godot::builtin::{Vector2, real};
 use godot::classes::{
@@ -22,7 +22,7 @@ struct Player {
     #[export]
     speed: f32,
     #[export]
-    bullet_spawner: Option<Gd<BulletSpawner>>,
+    bullet_spawner: Option<Gd<BulletManager>>,
 
     health_scene: Gd<PackedScene>,
     frames_since_last_healthbar_update: u16,

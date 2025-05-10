@@ -1,6 +1,7 @@
 use godot::{
     classes::{
-        AnimatedSprite2D, GpuParticles2D, IGpuParticles2D, IRigidBody2D, RigidBody2D, Timer,
+        AnimatedSprite2D, AudioStreamPlayer2D, GpuParticles2D, IGpuParticles2D, IRigidBody2D,
+        RigidBody2D, Timer,
     },
     prelude::*,
 };
@@ -9,10 +10,13 @@ use godot::{
 #[class(base=RigidBody2D)]
 struct Bullet {
     #[export]
-    bullet_spawner: Option<Gd<BulletSpawner>>,
+    bullet_spawner: Option<Gd<BulletManager>>,
 
     #[export]
     animated_sprite: Option<Gd<AnimatedSprite2D>>,
+
+    #[export]
+    bounce_sfx: Option<Gd<AudioStreamPlayer2D>>,
 
     #[export]
     bounces: u32,
@@ -44,6 +48,7 @@ struct Bullet {
 impl IRigidBody2D for Bullet {
     fn init(base: Base<RigidBody2D>) -> Self {
         Self {
+            bounce_sfx: None,
             bullet_spawner: None,
             animated_sprite: None,
             bounces: 0,
@@ -99,6 +104,7 @@ impl Bullet {
             if self.bounces == 0 {
                 should_explode = true;
             } else {
+                self.play_bounce();
                 self.bounces -= 1;
             }
         } else {
@@ -157,6 +163,12 @@ impl Bullet {
             spawner.bind_mut().spawn_explosion(self.position());
         }
     }
+
+    fn play_bounce(&mut self) {
+        if let Some(mut sfx) = self.bounce_sfx.clone() {
+            sfx.play();
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -184,14 +196,14 @@ impl Default for BulletParams {
 
 #[derive(GodotClass)]
 #[class(base=Node2D)]
-pub struct BulletSpawner {
+pub struct BulletManager {
     bullet_scene: Gd<PackedScene>,
     bullet_explosion_scene: Gd<PackedScene>,
     base: Base<Node2D>,
 }
 
 #[godot_api]
-impl INode2D for BulletSpawner {
+impl INode2D for BulletManager {
     fn init(base: Base<Node2D>) -> Self {
         Self {
             bullet_scene: load(Self::BULLET_SCENE),
@@ -205,7 +217,7 @@ impl INode2D for BulletSpawner {
     }
 }
 
-impl BulletSpawner {
+impl BulletManager {
     const BULLET_SCENE: &str = "res://scenes/bullet/bullet.tscn";
     const BULLET_EXPLOSION_SCENE: &str = "res://scenes/bullet/explosion.tscn";
 
@@ -247,7 +259,11 @@ impl BulletSpawner {
 #[class(base=GpuParticles2D, init)]
 pub struct BulletExplosion {
     #[export]
+    sfx: Option<Gd<AudioStreamPlayer2D>>,
+
+    #[export]
     free_timer: Option<Gd<Timer>>,
+
     base: Base<GpuParticles2D>,
 }
 
@@ -260,6 +276,9 @@ impl IGpuParticles2D for BulletExplosion {
                 .signals()
                 .ready()
                 .connect_obj(&*self, Self::on_timer_ready);
+        }
+        if let Some(mut sfx) = self.sfx.clone() {
+            sfx.play();
         }
     }
 }

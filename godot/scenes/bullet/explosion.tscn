@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://b87d2ojb0x011"]
+[gd_scene load_steps=5 format=3 uid="uid://b87d2ojb0x011"]
 
 [ext_resource type="Texture2D" uid="uid://mwhh0jpr7j3s" path="res://assets/explosion_particle.png" id="1_koylk"]
 [ext_resource type="Material" uid="uid://dqjacgdpjjalv" path="res://scenes/bullet/explosion_particle_material.tres" id="2_h6vbs"]
+[ext_resource type="AudioStream" uid="uid://clpp7j78wa2ui" path="res://assets/sfx/explosion.wav" id="3_n7yte"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_h6vbs"]
 particles_animation = true
@@ -9,7 +10,8 @@ particles_anim_h_frames = 6
 particles_anim_v_frames = 1
 particles_anim_loop = false
 
-[node name="Explosion" type="BulletExplosion" node_paths=PackedStringArray("free_timer")]
+[node name="Explosion" type="BulletExplosion" node_paths=PackedStringArray("sfx", "free_timer")]
+sfx = NodePath("AudioStreamPlayer2D")
 free_timer = NodePath("Timer")
 material = SubResource("CanvasItemMaterial_h6vbs")
 emitting = false
@@ -23,3 +25,6 @@ process_material = ExtResource("2_h6vbs")
 wait_time = 2.0
 one_shot = true
 autostart = true
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("3_n7yte")

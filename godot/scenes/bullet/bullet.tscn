@@ -1,8 +1,9 @@
-[gd_scene load_steps=15 format=3 uid="uid://ba2jo3tr3qm77"]
+[gd_scene load_steps=16 format=3 uid="uid://ba2jo3tr3qm77"]
 
 [ext_resource type="PhysicsMaterial" uid="uid://ct3o8gu7rvewn" path="res://scenes/bullet/bullet_material.tres" id="1_0vdx3"]
 [ext_resource type="Texture2D" uid="uid://dx68cphfd700g" path="res://assets/bullet_decay.png" id="2_8g26r"]
 [ext_resource type="Texture2D" uid="uid://cn7kmv84g4ug4" path="res://assets/bullet.png" id="3_4loxr"]
+[ext_resource type="AudioStream" uid="uid://b266ye2d2kln1" path="res://assets/sfx/bounce.wav" id="4_0vdx3"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_3npik"]
 atlas = ExtResource("2_8g26r")
@@ -83,8 +84,9 @@ animations = [{
 [sub_resource type="CircleShape2D" id="CircleShape2D_hp2ru"]
 radius = 4.0
 
-[node name="BulletScene" type="Bullet" node_paths=PackedStringArray("animated_sprite")]
+[node name="BulletScene" type="Bullet" node_paths=PackedStringArray("animated_sprite", "bounce_sfx")]
 animated_sprite = NodePath("AnimatedSprite2D")
+bounce_sfx = NodePath("AudioStreamPlayer2D")
 velocity = Vector2(100, 100)
 collision_layer = 8
 collision_mask = 5
@@ -101,3 +103,6 @@ speed_scale = 3.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_hp2ru")
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("4_0vdx3")
