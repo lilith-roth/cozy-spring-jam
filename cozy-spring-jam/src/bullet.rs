@@ -1,5 +1,5 @@
 use godot::{
-    classes::{AnimatedSprite2D, IRigidBody2D, RigidBody2D},
+    classes::{AnimatedSprite2D, CollisionObject2D, IRigidBody2D, RigidBody2D, TileMapLayer},
     prelude::*,
 };
 
@@ -53,8 +53,12 @@ impl IRigidBody2D for Bullet {
     }
 
     fn ready(&mut self) {
+        let velocity = self.velocity;
+        self.base_mut().set_linear_velocity(velocity);
+
         self.play_animation("default");
         self.base_mut().set_contact_monitor(true);
+        self.base_mut().set_max_contacts_reported(1);
         if let Some(mut anim) = self.animated_sprite.clone() {
             anim.signals()
                 .animation_finished()
@@ -66,9 +70,6 @@ impl IRigidBody2D for Bullet {
     }
 
     fn physics_process(&mut self, delta: f64) {
-        let velocity = self.velocity;
-        self.base_mut().set_linear_velocity(velocity);
-
         let scale = self.get_scale();
         self.base_mut().set_scale(Vector2::ONE * scale);
 
@@ -82,7 +83,7 @@ impl IRigidBody2D for Bullet {
 #[godot_api]
 impl Bullet {
     #[signal]
-    fn impacted(pos: Vector2, node: Gd<Node>);
+    fn impacted(pos: Vector2, power: f32, node: Gd<Node>);
 
     #[signal]
     fn decayed(pos: Vector2);
@@ -92,7 +93,16 @@ impl Bullet {
     const MAX_SCALE: f32 = 3.0;
 
     fn on_body_entered(&mut self, node: Gd<Node>) {
-        todo!()
+        if node.is_class("TileMapLayer") {
+            if self.bounces == 0 {
+                self.impact(node.upcast());
+            } else {
+                self.bounces -= 1;
+            }
+            return;
+        }
+
+        self.impact(node);
     }
 
     fn on_animation_finished(&mut self) {
@@ -103,6 +113,13 @@ impl Bullet {
 
     fn position(&self) -> Vector2 {
         self.base().get_position()
+    }
+
+    fn impact(&mut self, node: Gd<Node>) {
+        let pos = self.position();
+        let power = self.get_power();
+        self.signals().impacted().emit(pos, power, &node);
+        self.base_mut().queue_free();
     }
 
     fn decay(&mut self) {

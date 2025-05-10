@@ -127,7 +127,12 @@ impl Player {
             spawner.bind_mut().spawn(
                 self_pos + Self::BULLET_SPAWN_DISTANCE * bullet_dir,
                 bullet_dir,
-                BulletParams::default(),
+                BulletParams {
+                    bounces: 5,
+                    lifetime: 5.0,
+                    power: 3.0,
+                    ..BulletParams::default()
+                },
             );
         }
     }
