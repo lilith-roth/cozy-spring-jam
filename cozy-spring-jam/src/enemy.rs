@@ -86,10 +86,10 @@ impl Enemy {
         let Some(viewport) = self.base().get_viewport() else {
             return;
         };
-        let self_pos = self.base().get_position();
+        let self_pos = self.base().get_global_position();
         let facing = (target_position - self_pos).normalized();
         let facing_rot = f32::atan2(facing.y, facing.x);
-        let gun_pos = self_pos + Self::GUN_DISTANCE * facing;
+        let gun_pos = Self::GUN_DISTANCE * facing;
 
         if let Some(mut gun) = self.gun.clone() {
             gun.set_position(gun_pos);

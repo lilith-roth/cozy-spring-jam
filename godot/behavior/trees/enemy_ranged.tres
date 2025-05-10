@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dvsqkkll2fetj" path="res://behavior/tasks/get_first_in_group.gd" id="1_pisv7"]
 [ext_resource type="Script" uid="uid://cg36ncis7s3o7" path="res://behavior/tasks/flank_target.gd" id="2_pisv7"]
-[ext_resource type="Script" uid="uid://cs8l0le3t4srl" path="res://behavior/tasks/attack_ranged.gd" id="3_pisv7"]
+[ext_resource type="Script" path="res://behavior/tasks/attack_ranged.gd" id="3_pisv7"]
 
 [sub_resource type="BlackboardPlan" id="BlackboardPlan_4sxcy"]
 

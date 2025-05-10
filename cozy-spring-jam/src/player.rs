@@ -1,17 +1,21 @@
 mod health_hud;
 
-use crate::bullet::{BulletManager, BulletParams};
 use crate::gun::Gun;
 use crate::player::health_hud::HealthHud;
 use godot::builtin::{Vector2, real};
 use godot::classes::{
-    CharacterBody2D, Control, ICharacterBody2D, Input, InputEvent, Node, Node2D, PackedScene,
-    TextureRect,
+    AnimatedSprite2D, CharacterBody2D, Control, ICharacterBody2D, Input, InputEvent, Node,
+    PackedScene,
 };
-use godot::global::godot_print;
 use godot::obj::{Base, Gd, WithBaseField};
 use godot::prelude::{GodotClass, godot_api, load};
 use std::cmp::Ordering;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Orientation {
+    Left,
+    Right,
+}
 
 #[derive(GodotClass)]
 #[class(base=CharacterBody2D)]
@@ -26,6 +30,10 @@ struct Player {
     #[export]
     gun: Option<Gd<Gun>>,
 
+    #[export]
+    animation: Option<Gd<AnimatedSprite2D>>,
+
+    orientation: Orientation,
     health_scene: Gd<PackedScene>,
     frames_since_last_healthbar_update: u16,
     base: Base<CharacterBody2D>,
@@ -114,6 +122,18 @@ impl Player {
 
         self.base_mut().set_velocity(velocity);
         self.base_mut().move_and_slide();
+
+        if movement_vec != Vector2::ZERO {
+            self.play_animation("walk");
+        } else {
+            self.play_animation("default");
+        }
+
+        if movement_vec.x < 0.0 {
+            self.orientation = Orientation::Left;
+        } else if movement_vec.x > 0.0 {
+            self.orientation = Orientation::Right;
+        }
     }
 
     const GUN_DISTANCE: f32 = 24.0;
@@ -122,11 +142,11 @@ impl Player {
         let Some(viewport) = self.base().get_viewport() else {
             return;
         };
-        let self_pos = self.base().get_position();
+        let self_pos = self.base().get_global_position();
         let mouse_pos = viewport.get_mouse_position();
         let facing = (mouse_pos - self_pos).normalized();
         let facing_rot = f32::atan2(facing.y, facing.x);
-        let gun_pos = self_pos + Self::GUN_DISTANCE * facing;
+        let gun_pos = Self::GUN_DISTANCE * facing;
 
         if let Some(mut gun) = self.gun.clone() {
             gun.set_position(gun_pos);
@@ -153,6 +173,8 @@ impl ICharacterBody2D for Player {
             speed: 150.0,
             health_scene,
             frames_since_last_healthbar_update: 1337,
+            animation: None,
+            orientation: Orientation::Right,
             gun: None,
             base,
         }
@@ -161,7 +183,8 @@ impl ICharacterBody2D for Player {
     fn physics_process(&mut self, _delta: f64) {
         self.update_health_bar();
         self.position_gun();
-        self.handle_walk_input()
+        self.handle_walk_input();
+        self.update_orientation();
     }
 
     fn input(&mut self, event: Gd<InputEvent>) {
@@ -172,5 +195,21 @@ impl ICharacterBody2D for Player {
         }
     }
 
-    fn ready(&mut self) {}
+    fn ready(&mut self) {
+        self.play_animation("default");
+    }
+}
+
+impl Player {
+    fn play_animation(&self, name: &str) {
+        if let Some(mut anim) = self.get_animation() {
+            anim.play_ex().name(name).done();
+        }
+    }
+
+    fn update_orientation(&self) {
+        if let Some(mut anim) = self.get_animation() {
+            anim.set_flip_h(self.orientation == Orientation::Left);
+        }
+    }
 }

@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://jyv4g54adkmo" path="res://ui/overlays/pause_overlay.tscn" id="3_8o178"]
 [ext_resource type="PackedScene" uid="uid://cw84ajyk2ltpu" path="res://scenes/room_scene.tscn" id="5_5jhce"]
 [ext_resource type="PackedScene" uid="uid://uy4pxcfg127h" path="res://scenes/npcs/enemies/basic_melee_enemy.tscn" id="6_vus8m"]
-[ext_resource type="PackedScene" uid="uid://cfoq7kkkfnk48" path="res://scenes/npcs/enemies/basic_ranged_enemy.tscn" id="7_1sh3m"]
+[ext_resource type="PackedScene" path="res://scenes/npcs/enemies/basic_ranged_enemy.tscn" id="7_1sh3m"]
 
 [node name="IngameScene" type="Node2D"]
 script = ExtResource("1_objyc")

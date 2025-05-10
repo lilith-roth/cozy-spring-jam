@@ -1,9 +1,99 @@
-[gd_scene load_steps=2 format=3 uid="uid://pf5dccxmrlrw"]
+[gd_scene load_steps=15 format=3 uid="uid://pf5dccxmrlrw"]
 
 [ext_resource type="AudioStream" uid="uid://c47t8phn3yrbw" path="res://assets/sfx/shot.wav" id="1_x77fm"]
+[ext_resource type="Texture2D" uid="uid://dhl47bp1turul" path="res://assets/gun.png" id="2_gp1hk"]
+[ext_resource type="Texture2D" uid="uid://d0rup4t80hrv0" path="res://assets/gun_shoot.png" id="3_qd4js"]
 
-[node name="Gun" type="Gun" node_paths=PackedStringArray("shoot_sfx")]
+[sub_resource type="AtlasTexture" id="AtlasTexture_6b133"]
+atlas = ExtResource("2_gp1hk")
+region = Rect2(0, 0, 32, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_haq8l"]
+atlas = ExtResource("2_gp1hk")
+region = Rect2(32, 0, 32, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bmp1f"]
+atlas = ExtResource("2_gp1hk")
+region = Rect2(64, 0, 32, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6oi81"]
+atlas = ExtResource("2_gp1hk")
+region = Rect2(96, 0, 32, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5lyo6"]
+atlas = ExtResource("2_gp1hk")
+region = Rect2(128, 0, 32, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lu2bp"]
+atlas = ExtResource("3_qd4js")
+region = Rect2(0, 0, 32, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6hbmn"]
+atlas = ExtResource("3_qd4js")
+region = Rect2(32, 0, 32, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4fxfn"]
+atlas = ExtResource("3_qd4js")
+region = Rect2(64, 0, 32, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rrmri"]
+atlas = ExtResource("3_qd4js")
+region = Rect2(96, 0, 32, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gvx52"]
+atlas = ExtResource("3_qd4js")
+region = Rect2(128, 0, 32, 24)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_fa1ey"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6b133")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_haq8l")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bmp1f")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6oi81")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5lyo6")
+}],
+"loop": true,
+"name": &"default",
+"speed": 20.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lu2bp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6hbmn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4fxfn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rrmri")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gvx52")
+}],
+"loop": false,
+"name": &"shoot",
+"speed": 20.0
+}]
+
+[node name="Gun" type="Gun" node_paths=PackedStringArray("shoot_sfx", "animation")]
 shoot_sfx = NodePath("AudioStreamPlayer2D")
+animation = NodePath("AnimatedSprite2D")
 
 [node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("1_x77fm")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_fa1ey")
+frame_progress = 0.680507

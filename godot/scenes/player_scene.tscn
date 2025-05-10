@@ -1,24 +1,86 @@
-[gd_scene load_steps=4 format=3 uid="uid://bgwatioscnv6g"]
+[gd_scene load_steps=12 format=3 uid="uid://bgwatioscnv6g"]
 
-[ext_resource type="Texture2D" uid="uid://dmelj2qgr8w7k" path="res://icon.svg" id="1_crmta"]
+[ext_resource type="Texture2D" uid="uid://dfh3w2k5hc6wv" path="res://assets/player_walk..png" id="1_vefth"]
 [ext_resource type="PackedScene" uid="uid://pf5dccxmrlrw" path="res://scenes/gun.tscn" id="2_vefth"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rbmgg"]
+atlas = ExtResource("1_vefth")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_icjpm"]
+atlas = ExtResource("1_vefth")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yuc3v"]
+atlas = ExtResource("1_vefth")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_iya25"]
+atlas = ExtResource("1_vefth")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lvcr2"]
+atlas = ExtResource("1_vefth")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c3371"]
+atlas = ExtResource("1_vefth")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dgtyx"]
+atlas = ExtResource("1_vefth")
+region = Rect2(160, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_6w563"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rbmgg")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_icjpm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yuc3v")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_iya25")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lvcr2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c3371")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dgtyx")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 10.0
+}]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vefth"]
 size = Vector2(32, 32)
 
-[node name="PlayerScene" type="Player" node_paths=PackedStringArray("gun") groups=["player"]]
+[node name="PlayerScene" type="Player" node_paths=PackedStringArray("gun", "animation") groups=["player"]]
 gun = NodePath("Gun")
+animation = NodePath("AnimatedSprite2D")
 collision_layer = 2
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_6w563")
 
 [node name="AudioListener2D" type="AudioListener2D" parent="."]
 current = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_vefth")
-
-[node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(0.25, 0.25)
-texture = ExtResource("1_crmta")
 
 [node name="Hud" type="Node" parent="."]
 
