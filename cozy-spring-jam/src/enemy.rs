@@ -83,9 +83,6 @@ impl Enemy {
     const GUN_DISTANCE: f32 = 24.0;
     #[func]
     fn position_gun(&self, target_position: Vector2) {
-        let Some(viewport) = self.base().get_viewport() else {
-            return;
-        };
         let self_pos = self.base().get_global_position();
         let facing = (target_position - self_pos).normalized();
         let facing_rot = f32::atan2(facing.y, facing.x);
