@@ -87,9 +87,12 @@ animations = [{
 "speed": 20.0
 }]
 
-[node name="Gun" type="Gun" node_paths=PackedStringArray("shoot_sfx", "animation")]
+[node name="Gun" type="Gun" node_paths=PackedStringArray("shoot_sfx", "animation", "cooldown_timer")]
 shoot_sfx = NodePath("AudioStreamPlayer2D")
 animation = NodePath("AnimatedSprite2D")
+cooldown = 0.05
+spread = 0.8
+cooldown_timer = NodePath("Timer")
 
 [node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("1_x77fm")
@@ -97,3 +100,6 @@ stream = ExtResource("1_x77fm")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_fa1ey")
 frame_progress = 0.680507
+
+[node name="Timer" type="Timer" parent="."]
+one_shot = true

@@ -95,10 +95,10 @@ impl Enemy {
     }
 
     #[func]
-    fn shoot(&self, target: Vector2) {
+    fn shoot(&mut self, target: Vector2) {
         self.position_gun(target);
-        if let Some(gun) = &self.gun {
-            gun.bind().shoot();
+        if let Some(mut gun) = self.get_gun() {
+            gun.bind_mut().shoot();
         }
     }
 }

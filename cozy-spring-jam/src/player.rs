@@ -185,14 +185,7 @@ impl ICharacterBody2D for Player {
         self.position_gun();
         self.handle_walk_input();
         self.update_orientation();
-    }
-
-    fn input(&mut self, event: Gd<InputEvent>) {
-        if event.is_action_pressed("shoot") {
-            if let Some(gun) = &self.gun {
-                gun.bind().shoot();
-            }
-        }
+        self.handle_shooting();
     }
 
     fn ready(&mut self) {
@@ -210,6 +203,14 @@ impl Player {
     fn update_orientation(&self) {
         if let Some(mut anim) = self.get_animation() {
             anim.set_flip_h(self.orientation == Orientation::Left);
+        }
+    }
+
+    fn handle_shooting(&mut self) {
+        let input: Gd<Input> = Input::singleton();
+        if let Some(mut gun) = self.get_gun() {
+            gun.bind_mut()
+                .set_shooting(input.is_action_pressed("shoot"));
         }
     }
 }
