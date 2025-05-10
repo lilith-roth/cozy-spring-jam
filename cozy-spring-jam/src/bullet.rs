@@ -5,6 +5,7 @@ use godot::{
     },
     prelude::*,
 };
+use crate::enemy::Enemy;
 
 #[derive(GodotClass)]
 #[class(base=RigidBody2D)]
@@ -38,6 +39,8 @@ struct Bullet {
 
     dead: bool,
 
+    is_player_bullet: bool,
+
     base: Base<RigidBody2D>,
 }
 
@@ -55,6 +58,7 @@ impl IRigidBody2D for Bullet {
             power: 1.0,
             age: 0.0,
             dead: false,
+            is_player_bullet: true,
             base,
         }
     }
@@ -135,6 +139,18 @@ impl Bullet {
         let pos = self.position();
         let power = self.get_power();
         self.signals().impacted().emit(pos, power, &node);
+
+        if self.is_player_bullet {
+            if node.is_class("Enemy") {
+                let mut enemy_node: Gd<Enemy> = node.cast();
+                enemy_node.bind_mut().damage_enemy(self.power.round() as i16);
+            }
+        } else {
+            if node.is_class("Player") {
+                let mut enemy_node: Gd<Enemy> = node.cast();
+                enemy_node.bind_mut().damage_enemy(self.power.round() as i16);
+            }
+        }
     }
 
     fn impact_explode(&mut self, node: Gd<Node>) {
@@ -181,6 +197,7 @@ pub struct BulletParams {
     pub bounce_power_preservation: f32,
     pub bounce_velocity_preservation: f32,
     pub lifetime: f32,
+    pub is_player_bullet: bool,
 }
 
 impl Default for BulletParams {
@@ -192,6 +209,7 @@ impl Default for BulletParams {
             bounce_velocity_preservation: 1.0,
             bounce_power_preservation: 1.0,
             lifetime: 0.2,
+            is_player_bullet: true,
         }
     }
 }
@@ -240,7 +258,6 @@ impl BulletManager {
             .expect("Failed to spawn bullet")
             .cast();
         bullet.set_position(pos);
-
         {
             let mut bullet_mut = bullet.bind_mut();
             bullet_mut.set_power(params.power);

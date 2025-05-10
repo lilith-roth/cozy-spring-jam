@@ -19,7 +19,7 @@ struct Player {
     #[export]
     max_health: u16,
     #[export]
-    health: u16,
+    health: i16,
     #[export]
     speed: f32,
 
@@ -31,6 +31,7 @@ struct Player {
     base: Base<CharacterBody2D>,
 }
 
+#[godot_api]
 impl Player {
     fn update_health_bar(&mut self) {
         self.frames_since_last_healthbar_update += 1;
@@ -78,7 +79,7 @@ impl Player {
                 .get_child(0)
                 .expect("You need a HeartState named node with a HeartContainer!");
             let new_heart_state: &str;
-            match i.cmp(&self.health) {
+            match i.cmp(&(self.health as u16)) {
                 Ordering::Less => new_heart_state = "-FULL",
                 Ordering::Equal => new_heart_state = "-HALF",
                 Ordering::Greater => new_heart_state = "-EMPTY",
@@ -130,6 +131,14 @@ impl Player {
         if let Some(mut gun) = self.gun.clone() {
             gun.set_position(gun_pos);
             gun.set_rotation(facing_rot);
+        }
+    }
+
+    #[func]
+    fn damage_player(&mut self, amount: i16) {
+        self.health -= amount;
+        if self.health <= 0 {
+            self.base_mut().get_tree().unwrap().quit();
         }
     }
 }

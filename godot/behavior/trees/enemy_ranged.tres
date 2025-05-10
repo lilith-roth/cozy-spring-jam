@@ -1,0 +1,47 @@
+[gd_resource type="BehaviorTree" load_steps=14 format=3 uid="uid://kmketea3seir"]
+
+[ext_resource type="Script" uid="uid://dvsqkkll2fetj" path="res://behavior/tasks/get_first_in_group.gd" id="1_pisv7"]
+[ext_resource type="Script" uid="uid://cg36ncis7s3o7" path="res://behavior/tasks/flank_target.gd" id="2_pisv7"]
+[ext_resource type="Script" uid="uid://cs8l0le3t4srl" path="res://behavior/tasks/attack_ranged.gd" id="3_pisv7"]
+
+[sub_resource type="BlackboardPlan" id="BlackboardPlan_4sxcy"]
+
+[sub_resource type="BTRandomWait" id="BTRandomWait_aj53y"]
+min_duration = 0.7
+max_duration = 1.5
+
+[sub_resource type="BTSequence" id="BTSequence_y0y3u"]
+custom_name = "Idle"
+children = [SubResource("BTRandomWait_aj53y")]
+
+[sub_resource type="BTAction" id="BTAction_62rma"]
+script = ExtResource("1_pisv7")
+group = &"player"
+output_var = &"target"
+
+[sub_resource type="BTAction" id="BTAction_8ptwv"]
+script = ExtResource("2_pisv7")
+target_var = &"target"
+
+[sub_resource type="BTTimeLimit" id="BTTimeLimit_0xar2"]
+time_limit = 2.0
+children = [SubResource("BTAction_8ptwv")]
+
+[sub_resource type="BTSequence" id="BTSequence_gocso"]
+custom_name = "Pursue player"
+children = [SubResource("BTAction_62rma"), SubResource("BTTimeLimit_0xar2")]
+
+[sub_resource type="BTAction" id="BTAction_hrb1m"]
+script = ExtResource("3_pisv7")
+target_var = &"target"
+
+[sub_resource type="BTSequence" id="BTSequence_066rf"]
+custom_name = "Ranged attack"
+children = [SubResource("BTAction_hrb1m")]
+
+[sub_resource type="BTSequence" id="BTSequence_ctje6"]
+children = [SubResource("BTSequence_y0y3u"), SubResource("BTSequence_gocso"), SubResource("BTSequence_066rf")]
+
+[resource]
+blackboard_plan = SubResource("BlackboardPlan_4sxcy")
+root_task = SubResource("BTSequence_ctje6")

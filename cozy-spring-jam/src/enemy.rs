@@ -1,16 +1,22 @@
 use godot::builtin::{Vector2, real};
 use godot::classes::{CharacterBody2D, ICharacterBody2D, NavigationAgent2D, Node};
+use godot::global::godot_print;
 use godot::obj::{Base, Gd, WithBaseField};
 use godot::prelude::{GodotClass, godot_api};
+use crate::gun::Gun;
 
 #[derive(GodotClass)]
 #[class(base=CharacterBody2D)]
-struct Enemy {
+pub struct Enemy {
     #[export]
     health: i16,
     #[export]
     speed: f32,
     frames_since_facing_update: u16,
+
+    #[export]
+    gun: Option<Gd<Gun>>,
+
     base: Base<CharacterBody2D>,
 }
 
@@ -67,10 +73,35 @@ impl Enemy {
     }
 
     #[func]
-    fn damage_enemy(&mut self, amount: i16) {
+    pub fn damage_enemy(&mut self, amount: i16) {
         self.health -= amount;
         if self.health <= 0 {
             self.base_mut().queue_free();
+        }
+    }
+
+    const GUN_DISTANCE: f32 = 24.0;
+    #[func]
+    fn position_gun(&self, target_position: Vector2) {
+        let Some(viewport) = self.base().get_viewport() else {
+            return;
+        };
+        let self_pos = self.base().get_position();
+        let facing = (target_position - self_pos).normalized();
+        let facing_rot = f32::atan2(facing.y, facing.x);
+        let gun_pos = self_pos + Self::GUN_DISTANCE * facing;
+
+        if let Some(mut gun) = self.gun.clone() {
+            gun.set_position(gun_pos);
+            gun.set_rotation(facing_rot);
+        }
+    }
+
+    #[func]
+    fn shoot(&self, target: Vector2) {
+        self.position_gun(target);
+        if let Some(gun) = &self.gun {
+            gun.bind().shoot();
         }
     }
 }
@@ -82,6 +113,7 @@ impl ICharacterBody2D for Enemy {
             health: 5,
             speed: 100.0,
             frames_since_facing_update: 0,
+            gun: None,
             base,
         }
     }
