@@ -35,7 +35,6 @@ func _tick(_delta: float) -> Status:
 func actor_setup(target: Node2D):
 	# Wait for the first physics frame so the NavigationServer can sync.
 	var direction = agent.global_position.direction_to(target.global_position)
-	print(direction)
 	var position_offset = Vector2(
 		agent.global_position.x + (direction.x * randf_range(distance_min, distance_max)), 
 		agent.global_position.y + (direction.y * randf_range(distance_min, distance_max))
