@@ -25,7 +25,7 @@ struct Bullet {
     bounce_power_preservation: f32,
 
     #[export]
-    velocity: Vector2,
+    initial_velocity: Vector2,
 
     #[export]
     lifetime: f32,
@@ -50,7 +50,7 @@ impl IRigidBody2D for Bullet {
             bounces: 0,
             bounce_velocity_preservation: 1.0,
             bounce_power_preservation: 0.5,
-            velocity: Vector2::ZERO,
+            initial_velocity: Vector2::ZERO,
             lifetime: 2.0,
             power: 1.0,
             age: 0.0,
@@ -60,12 +60,11 @@ impl IRigidBody2D for Bullet {
     }
 
     fn ready(&mut self) {
-        let velocity = self.velocity;
-        self.base_mut().set_linear_velocity(velocity);
-
         self.play_animation("default");
         self.base_mut().set_contact_monitor(true);
         self.base_mut().set_max_contacts_reported(1);
+        let initial_vel = self.initial_velocity;
+        self.base_mut().set_linear_velocity(initial_vel);
         if let Some(mut anim) = self.animated_sprite.clone() {
             anim.signals()
                 .animation_finished()
@@ -100,8 +99,7 @@ impl Bullet {
             if self.bounces == 0 {
                 should_explode = true;
             } else {
-                self.play_bounce();
-                self.bounces -= 1;
+                self.bounce();
             }
         } else {
             should_explode = true;
@@ -112,6 +110,15 @@ impl Bullet {
         } else {
             self.impact(node);
         }
+    }
+
+    fn bounce(&mut self) {
+        self.play_bounce();
+        self.bounces -= 1;
+        let prev_vel = self.base().get_linear_velocity();
+        let new_vel = self.bounce_velocity_preservation * prev_vel;
+        self.base_mut().set_linear_velocity(new_vel);
+        self.power *= self.bounce_power_preservation;
     }
 
     fn free_if_dead(&mut self) {
@@ -132,7 +139,6 @@ impl Bullet {
 
     fn impact_explode(&mut self, node: Gd<Node>) {
         self.base_mut().hide();
-        self.base_mut().set_linear_velocity(Vector2::ZERO);
         self.emit_explosion();
         self.impact(node);
         self.base_mut().queue_free();
@@ -238,7 +244,7 @@ impl BulletManager {
         {
             let mut bullet_mut = bullet.bind_mut();
             bullet_mut.set_power(params.power);
-            bullet_mut.set_velocity(params.speed * direction);
+            bullet_mut.set_initial_velocity(params.speed * direction);
             bullet_mut.set_bounces(params.bounces);
             bullet_mut.set_bounce_velocity_preservation(params.bounce_velocity_preservation);
             bullet_mut.set_bounce_power_preservation(params.bounce_power_preservation);
