@@ -3,9 +3,9 @@ mod player;
 
 use godot::prelude::*;
 
+mod bullet;
 mod room;
 mod utils;
-mod bullet;
 
 struct MyExtension;
 

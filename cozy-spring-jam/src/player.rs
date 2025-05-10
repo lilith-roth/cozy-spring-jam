@@ -1,5 +1,6 @@
 mod health_hud;
 
+use crate::bullet::Bullet;
 use crate::player::health_hud::HealthHud;
 use godot::builtin::{Vector2, real};
 use godot::classes::{
@@ -9,6 +10,7 @@ use godot::global::godot_print;
 use godot::obj::{Base, Gd, WithBaseField};
 use godot::prelude::{GodotClass, godot_api, load};
 use std::cmp::Ordering;
+use std::ops::DerefMut;
 
 #[derive(GodotClass)]
 #[class(base=CharacterBody2D)]
@@ -20,6 +22,7 @@ struct Player {
     #[export]
     speed: f32,
     health_scene: Gd<PackedScene>,
+    bullet_scene: Gd<PackedScene>,
     frames_since_last_healthbar_update: u16,
     base: Base<CharacterBody2D>,
 }
@@ -108,17 +111,61 @@ impl Player {
         self.base_mut().set_velocity(velocity);
         self.base_mut().move_and_slide();
     }
+
+    fn handle_shooting(&mut self) {
+        let input: Gd<Input> = Input::singleton();
+        let left = input.is_action_just_pressed("shoot_left");
+        let right = input.is_action_just_pressed("shoot_right");
+        let up = input.is_action_just_pressed("shoot_up");
+        let down = input.is_action_just_pressed("shoot_down");
+        if !left && !right && !up && !down {
+            return;
+        }
+        if left && right {
+            return;
+        }
+        if up && down {
+            return;
+        }
+        let bullet_direction: Vector2 = Vector2 {
+            x: if left {
+                -1 as real
+            } else if right {
+                1 as real
+            } else {
+                0 as real
+            },
+            y: if up {
+                -1 as real
+            } else if down {
+                1 as real
+            } else {
+                0 as real
+            },
+        };
+        let mut bullet: Gd<Bullet> = self
+            .bullet_scene
+            .instantiate()
+            .expect("Totally no reason to crash here right? :P")
+            .cast();
+        bullet.bind_mut().set_direction(bullet_direction);
+        bullet.bind_mut().set_velocity(bullet_direction);
+        self.base_mut().add_child(&bullet);
+        self.base_mut().move_and_slide();
+    }
 }
 
 #[godot_api]
 impl ICharacterBody2D for Player {
     fn init(base: Base<CharacterBody2D>) -> Self {
         let health_scene = load::<PackedScene>("res://ui/hud/health_hud.tscn");
+        let bullet_scene = load::<PackedScene>("res://scenes/bullet_scene.tscn");
         Self {
             max_health: 20,
             health: 20,
             speed: 150.0,
             health_scene,
+            bullet_scene,
             frames_since_last_healthbar_update: 1337,
             base,
         }
@@ -127,7 +174,8 @@ impl ICharacterBody2D for Player {
     fn physics_process(&mut self, _delta: f64) {
         self.update_health_bar();
 
-        self.handle_walk_input()
+        self.handle_walk_input();
+        self.handle_shooting();
     }
 
     fn ready(&mut self) {}
