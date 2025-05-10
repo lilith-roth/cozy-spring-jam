@@ -29,6 +29,7 @@ window/size/window_width_override=1920
 window/size/window_height_override=1080
 window/stretch/mode="canvas_items"
 window/stretch/aspect="keep_height"
+mouse_cursor/custom_image="uid://du6tiahbivc6p"
 
 [editor_plugins]
 
@@ -112,6 +113,7 @@ behavior_tree/user_task_dirs=PackedStringArray("res://behavior/tasks")
 2d/default_gravity=0.0
 2d/default_linear_damp=0.0
 2d/default_angular_damp=0.0
+
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0
