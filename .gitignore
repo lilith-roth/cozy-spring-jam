@@ -18,3 +18,4 @@ mono_crash.*.json
 cozy-spring-jam/target/*
 
 .idea
+out/
