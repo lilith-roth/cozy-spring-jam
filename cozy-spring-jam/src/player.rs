@@ -1,10 +1,14 @@
 mod health_hud;
 
+use crate::attribute::Attributes;
 use crate::gun::Gun;
 use crate::player::health_hud::HealthHud;
 use crate::room::Room;
 use godot::builtin::{Vector2, real};
-use godot::classes::{AnimatedSprite2D, Camera2D, CharacterBody2D, Control, ICamera2D, ICharacterBody2D, Input, Node, PackedScene, Timer};
+use godot::classes::{
+    AnimatedSprite2D, Camera2D, CharacterBody2D, Control, ICamera2D, ICharacterBody2D, Input, Node,
+    PackedScene, Timer,
+};
 use godot::global::{godot_print, pow, randf_range};
 use godot::obj::{Base, Gd, WithBaseField};
 use godot::prelude::{GodotClass, godot_api, load};
@@ -16,15 +20,17 @@ enum Orientation {
     Right,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PlayerAttribute {
+    MaxHealth,
+    Speed,
+}
+
 #[derive(GodotClass)]
 #[class(base=CharacterBody2D)]
 pub struct Player {
     #[export]
-    max_health: u16,
-    #[export]
     health: i16,
-    #[export]
-    speed: f32,
     #[export]
     damage_camera_shake_trauma: f64,
 
@@ -34,6 +40,8 @@ pub struct Player {
     #[export]
     animation: Option<Gd<AnimatedSprite2D>>,
 
+    attributes: Attributes<PlayerAttribute>,
+
     orientation: Orientation,
     health_scene: Gd<PackedScene>,
     frames_since_last_healthbar_update: u16,
@@ -42,6 +50,10 @@ pub struct Player {
 
 #[godot_api]
 impl Player {
+    pub fn attr(&mut self) -> &mut Attributes<PlayerAttribute> {
+        &mut self.attributes
+    }
+
     fn update_health_bar(&mut self) {
         self.frames_since_last_healthbar_update += 1;
         if self.frames_since_last_healthbar_update > 5 {
@@ -55,7 +67,8 @@ impl Player {
             .find_child("HealthHuds")
             .expect("Player.Hud needs a HealthHuds node!");
 
-        let expected_amount_health_containers = (f32::from(self.max_health / 2)).ceil();
+        let expected_amount_health_containers =
+            (self.attr().get(PlayerAttribute::MaxHealth) / 2.0).ceil();
 
         // Add new heart containers
         for i in hud_node.get_children().len()..expected_amount_health_containers as usize {
@@ -79,16 +92,16 @@ impl Player {
         }
 
         // Update heart states
-        for i in 0..self.max_health {
+        for i in 0..self.attr().get_uint(PlayerAttribute::MaxHealth) {
             let health_container: Gd<HealthHud> = hud_node
-                .get_child((f32::from(i) / 2.0).floor() as i32)
+                .get_child(((i as f32) / 2.0).floor() as i32)
                 .expect(":thinking_face:")
                 .cast();
             let mut heart_state: Gd<Node> = health_container
                 .get_child(0)
                 .expect("You need a HeartState named node with a HeartContainer!");
             let new_heart_state: &str;
-            match i.cmp(&(self.health as u16)) {
+            match i.cmp(&(self.health as u32)) {
                 Ordering::Less => new_heart_state = "-FULL",
                 Ordering::Equal => new_heart_state = "-HALF",
                 Ordering::Greater => new_heart_state = "-EMPTY",
@@ -119,7 +132,7 @@ impl Player {
         if down {
             movement_vec.y += 1.0;
         }
-        let velocity = movement_vec.normalized_or_zero() * self.speed;
+        let velocity = movement_vec.normalized_or_zero() * self.attr().get(PlayerAttribute::Speed);
 
         self.base_mut().set_velocity(velocity);
         self.base_mut().move_and_slide();
@@ -192,13 +205,19 @@ impl Player {
             return;
         }
         self.health -= amount;
-        let mut camera: Gd<PlayerCamera> = self.base_mut().find_child("Camera2D").expect("Could not find camera on Player!").cast();
-        camera.bind_mut().add_trauma(self.damage_camera_shake_trauma);
+        let mut camera: Gd<PlayerCamera> = self
+            .base_mut()
+            .find_child("Camera2D")
+            .expect("Could not find camera on Player!")
+            .cast();
+        camera
+            .bind_mut()
+            .add_trauma(self.damage_camera_shake_trauma);
         if self.health <= 0 {
             self.base_mut().get_tree().unwrap().quit();
         }
-        if self.health > self.max_health as i16 {
-            self.health = self.max_health as i16;
+        if self.health > self.attr().get_int(PlayerAttribute::MaxHealth) as i16 {
+            self.health = self.attr().get(PlayerAttribute::MaxHealth) as i16;
         }
         damage_cooldown_timer.start();
     }
@@ -208,10 +227,12 @@ impl Player {
 impl ICharacterBody2D for Player {
     fn init(base: Base<CharacterBody2D>) -> Self {
         let health_scene = load::<PackedScene>("res://ui/hud/health_hud.tscn");
+        let mut attributes = Attributes::new();
+        attributes.set_base(PlayerAttribute::MaxHealth, 20.0);
+        attributes.set_base(PlayerAttribute::Speed, 150.0);
         Self {
-            max_health: 20,
+            attributes,
             health: 20,
-            speed: 150.0,
             health_scene,
             frames_since_last_healthbar_update: 1337,
             animation: None,
@@ -268,20 +289,17 @@ struct PlayerCamera {
     max_roll: f32,
     trauma: f64,
     trauma_power: u16,
-    base: Base<Camera2D>
+    base: Base<Camera2D>,
 }
 
 #[godot_api]
 impl PlayerCamera {
     fn shake(&mut self) {
-
         let amount = pow(self.trauma, self.trauma_power as f64);
         let max_roll = self.max_roll;
         let max_offset = self.max_offset;
-        self.base_mut().set_rotation(max_roll * amount as f32 * randf_range(
-            -1.0,
-            1.0
-        ) as f32);
+        self.base_mut()
+            .set_rotation(max_roll * amount as f32 * randf_range(-1.0, 1.0) as f32);
         self.base_mut().set_offset(Vector2 {
             x: max_offset.x * amount as real * randf_range(-1.0, 1.0) as real,
             y: max_offset.y * amount as real * randf_range(-1.0, 1.0) as real,
@@ -301,7 +319,7 @@ impl ICamera2D for PlayerCamera {
     fn init(base: Base<Self::Base>) -> Self {
         Self {
             decay: 0.8,
-            max_offset: Vector2{x: 25.0, y: 10.0},
+            max_offset: Vector2 { x: 25.0, y: 10.0 },
             max_roll: 0.1,
             trauma: 0.0,
             trauma_power: 2,
