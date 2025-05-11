@@ -2,7 +2,10 @@ use crate::enemy_drop::EnemyDrop;
 use crate::gun::Gun;
 use crate::player::Player;
 use godot::builtin::{Array, Vector2, real};
-use godot::classes::{Area2D, CharacterBody2D, IArea2D, ICharacterBody2D, IRigidBody2D, NavigationAgent2D, Node, Node2D, PackedScene, RigidBody2D, Timer};
+use godot::classes::{
+    Area2D, CharacterBody2D, IArea2D, ICharacterBody2D, IRigidBody2D, NavigationAgent2D, Node,
+    Node2D, PackedScene, RigidBody2D, Timer,
+};
 use godot::global::{godot_print, randi_range};
 use godot::obj::{Base, Gd, WithBaseField, WithUserSignals};
 use godot::prelude::{GodotClass, godot_api};

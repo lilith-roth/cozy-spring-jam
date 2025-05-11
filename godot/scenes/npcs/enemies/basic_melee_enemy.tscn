@@ -35,7 +35,7 @@ shape = SubResource("CircleShape2D_6n6l3")
 [node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]
 position = Vector2(0, 3)
 
-[node name="BehaviorTree" type="BTPlayer" parent="."]
+[node name="BehaviorTree" type="BTPlayer" parent="." groups=["enemy"]]
 behavior_tree = ExtResource("2_6n6l3")
 blackboard_plan = SubResource("BlackboardPlan_8r5q3")
 

@@ -8,10 +8,10 @@ use godot::classes::{
     AnimatedSprite2D, Camera2D, CharacterBody2D, Control, ICharacterBody2D, Input, InputEvent,
     Node, PackedScene, Timer,
 };
+use godot::global::godot_print;
 use godot::obj::{Base, Gd, WithBaseField};
 use godot::prelude::{GodotClass, godot_api, load};
 use std::cmp::Ordering;
-use godot::global::godot_print;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Orientation {
@@ -159,7 +159,9 @@ impl Player {
                     .expect("Could not get camera node")
                     .cast();
                 camera_node.set_global_position(room.get_global_position());
-                break;
+                room.bind_mut().en_disable_enemies_in_room(true);
+            } else {
+                room.bind_mut().en_disable_enemies_in_room(false);
             }
         }
     }

@@ -21,3 +21,5 @@ tile_set = ExtResource("1_ejeae")
 grass_coords = Vector2i(3, 0)
 tall_grass_coords = Vector2i(3, 2)
 tile_set = ExtResource("2_ep7ff")
+
+[node name="NPCS" type="Node2D" parent="."]

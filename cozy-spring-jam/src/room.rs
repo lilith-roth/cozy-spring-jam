@@ -1,4 +1,6 @@
+use crate::enemy::Enemy;
 use crate::utils::Grid;
+use godot::classes::node::ProcessMode;
 use godot::{
     classes::{
         FastNoiseLite, RandomNumberGenerator, TileMapLayer,
@@ -369,6 +371,8 @@ pub struct Room {
 
     room_scene: Gd<PackedScene>,
 
+    enemy_scene: Gd<PackedScene>,
+
     room_layout: Option<RoomLayout>,
 
     adjacent_rooms_generated: bool,
@@ -389,6 +393,7 @@ impl INode2D for Room {
             height: 0,
             params: RoomGenParams::default(),
             room_scene: load("res://scenes/room_scene.tscn"),
+            enemy_scene: load("res://scenes/npcs/enemies/basic_melee_enemy.tscn"),
             room_layout: None,
             adjacent_rooms_generated: false,
             not_first_room: true,
@@ -557,6 +562,7 @@ impl Room {
                             .bind_mut()
                             .generate(rng.randi(), &new_layout.clone().unwrap());
                         new_room_node.bind_mut().room_layout = new_layout;
+                        new_room_node.bind_mut().spawn_enemies_in_room();
                         self.base_mut()
                             .get_parent()
                             .expect("Could not get parent!")
@@ -589,6 +595,7 @@ impl Room {
                             .bind_mut()
                             .generate(rng.randi(), &new_layout.clone().unwrap());
                         new_room_node.bind_mut().room_layout = new_layout;
+                        new_room_node.bind_mut().spawn_enemies_in_room();
                         self.base_mut()
                             .get_parent()
                             .expect("Could not get parent!")
@@ -621,6 +628,7 @@ impl Room {
                             .bind_mut()
                             .generate(rng.randi(), &new_layout.clone().unwrap());
                         new_room_node.bind_mut().room_layout = new_layout;
+                        new_room_node.bind_mut().spawn_enemies_in_room();
                         self.base_mut()
                             .get_parent()
                             .expect("Could not get parent!")
@@ -653,6 +661,7 @@ impl Room {
                             .bind_mut()
                             .generate(rng.randi(), &new_layout.clone().unwrap());
                         new_room_node.bind_mut().room_layout = new_layout;
+                        new_room_node.bind_mut().spawn_enemies_in_room();
                         self.base_mut()
                             .get_parent()
                             .expect("Could not get parent!")
@@ -664,6 +673,59 @@ impl Room {
                     }
                 }
                 self.adjacent_rooms_generated = true;
+            }
+        }
+    }
+
+    fn spawn_enemies_in_room(&mut self) {
+        let mut rng = RandomNumberGenerator::new_gd();
+        let amount_new_enemies = rng.randi_range(0, 6);
+        for i in 0..amount_new_enemies {
+            let mut new_enemy: Gd<Enemy> = self
+                .enemy_scene
+                .instantiate()
+                .expect("Could not instantiate enemy scene!")
+                .cast();
+            let mut enemies_node: Gd<Node2D> = self
+                .base_mut()
+                .find_child("NPCS")
+                .expect("Could not find npcs node")
+                .cast();
+            enemies_node.add_child(&new_enemy);
+            new_enemy.set_position(Vector2 {
+                x: rng.randi_range(0, self.width * 32) as real,
+                y: rng.randi_range(0, self.height * 32) as real,
+            });
+        }
+    }
+
+    pub fn en_disable_enemies_in_room(&mut self, state: bool) {
+        let all_enemies = self
+            .base_mut()
+            .get_tree()
+            .expect("Could not get tree!")
+            .get_nodes_in_group("enemy");
+        for i in 0..all_enemies.len() {
+            let mut enemy: Gd<Enemy> = match all_enemies
+                .get(i)
+                .expect("Could not get enemy in list")
+                .try_cast::<Enemy>()
+            {
+                Ok(enemy) => enemy,
+                Err(_) => continue,
+            };
+            let enemy_pos = enemy.get_global_position();
+            let room_pos = self.base_mut().get_global_position();
+            if enemy_pos.x > room_pos.x
+                && enemy_pos.x < room_pos.x + (self.width as real * 32.0)
+                && enemy_pos.y > room_pos.y
+                && enemy_pos.y < room_pos.y + (self.height as real * 32.0)
+            {
+                if state {
+                    enemy.set_process_mode(ProcessMode::INHERIT)
+                } else {
+                    enemy.set_process_mode(ProcessMode::DISABLED)
+                }
             }
         }
     }
