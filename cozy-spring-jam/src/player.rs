@@ -166,11 +166,8 @@ impl Player {
     const GUN_DISTANCE: f32 = 24.0;
 
     fn position_gun(&self) {
-        let Some(viewport) = self.base().get_viewport() else {
-            return;
-        };
         let self_pos = self.base().get_global_position();
-        let mouse_pos = viewport.get_mouse_position();
+        let mouse_pos = self.base().get_global_mouse_position();
         let facing = (mouse_pos - self_pos).normalized();
         let facing_rot = f32::atan2(facing.y, facing.x);
         let gun_pos = Self::GUN_DISTANCE * facing;
