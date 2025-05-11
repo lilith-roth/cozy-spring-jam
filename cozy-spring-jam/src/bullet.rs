@@ -11,6 +11,7 @@ use godot::{
     },
     prelude::*,
 };
+use crate::player::Player;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BulletAttribute {
@@ -181,8 +182,8 @@ impl Bullet {
             }
         } else {
             if node.is_class("Player") {
-                let mut enemy_node: Gd<Enemy> = node.cast();
-                enemy_node.bind_mut().damage_enemy(power.round() as i16);
+                let mut player_node: Gd<Player> = node.cast();
+                player_node.bind_mut().damage_player(power.round() as i16);
             }
         }
     }
