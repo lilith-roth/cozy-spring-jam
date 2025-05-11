@@ -15,7 +15,6 @@ animations = [{
 }]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_6n6l3"]
-radius = 13.0
 
 [sub_resource type="BlackboardPlan" id="BlackboardPlan_8r5q3"]
 
