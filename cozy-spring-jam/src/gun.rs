@@ -37,6 +37,8 @@ pub struct Gun {
     #[var]
     on_cooldown: bool,
 
+    cooldown_animation_shown: bool,
+
     shooting: bool,
 
     base: Base<Node2D>,
@@ -48,7 +50,7 @@ impl INode2D for Gun {
         let mut attributes = Attributes::new();
         attributes
             .set_base(GunAttribute::Spread, 0.4)
-            .set_base(GunAttribute::Cooldown, 0.5)
+            .set_base(GunAttribute::Cooldown, 1.0)
             .set_base(GunAttribute::Bullets(BulletAttribute::Power), 1.0)
             .set_base(GunAttribute::Bullets(BulletAttribute::Lifetime), 1.0)
             .set_base(GunAttribute::Bullets(BulletAttribute::Speed), 200.0)
@@ -68,6 +70,7 @@ impl INode2D for Gun {
             is_player_gun: false,
             attributes,
             on_cooldown: false,
+            cooldown_animation_shown: false,
             shooting: false,
             base,
         }
@@ -86,7 +89,7 @@ impl INode2D for Gun {
                 .timeout()
                 .connect_obj(&*self, Self::on_cooldown_finished);
         }
-        self.play_animation("default");
+        self.play_animation("default", false);
     }
 }
 
@@ -102,7 +105,7 @@ impl Gun {
         self.start_cooldown();
 
         self.play_shoot();
-        self.play_animation("shoot");
+        self.play_animation("shoot", false);
         if let Some(mut bullets) = BulletManager::for_node(self.base().upcast_ref()) {
             let pos = self.base().get_global_position();
             let rotation = self.get_bullet_rotation();
@@ -139,6 +142,7 @@ impl Gun {
     }
 
     fn start_cooldown(&mut self) {
+        self.cooldown_animation_shown = false;
         if let Some(mut timer) = self.get_cooldown_timer() {
             self.on_cooldown = true;
             timer.start();
@@ -151,19 +155,32 @@ impl Gun {
         }
     }
 
-    fn play_animation(&self, name: &str) {
+    fn play_animation(&self, name: &str, reverse: bool) {
         if let Some(mut anim) = self.get_animation() {
             anim.stop();
-            anim.play_ex().name(name).done();
+            if reverse {
+                anim.play_backwards_ex().name(name).done();
+            } else {
+                anim.play_ex().name(name).done();
+            }
         }
     }
 
     fn on_animation_finished(&mut self) {
-        self.play_animation("default");
+        if self.on_cooldown {
+            if self.cooldown_animation_shown {
+                self.play_animation("cooldown_transition", false);
+            } else {
+                self.play_animation("cooldown", false);
+            }
+        } else {
+            self.play_animation("default", false);
+        }
     }
 
     fn on_cooldown_finished(&mut self) {
         self.on_cooldown = false;
+        self.play_animation("cooldown_transition", true);
         if self.shooting {
             self.shoot();
         }

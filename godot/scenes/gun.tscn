@@ -1,8 +1,29 @@
-[gd_scene load_steps=15 format=3 uid="uid://pf5dccxmrlrw"]
+[gd_scene load_steps=21 format=3 uid="uid://pf5dccxmrlrw"]
 
 [ext_resource type="AudioStream" uid="uid://c47t8phn3yrbw" path="res://assets/sfx/shot.wav" id="1_x77fm"]
 [ext_resource type="Texture2D" uid="uid://dhl47bp1turul" path="res://assets/gun.png" id="2_gp1hk"]
+[ext_resource type="Texture2D" uid="uid://c06ov01a4xrsc" path="res://assets/gun_cooldown.png" id="2_qd4js"]
 [ext_resource type="Texture2D" uid="uid://d0rup4t80hrv0" path="res://assets/gun_shoot.png" id="3_qd4js"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qd4js"]
+atlas = ExtResource("2_qd4js")
+region = Rect2(96, 0, 32, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fa1ey"]
+atlas = ExtResource("2_qd4js")
+region = Rect2(0, 0, 32, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wi2m7"]
+atlas = ExtResource("2_qd4js")
+region = Rect2(32, 0, 32, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qc2nv"]
+atlas = ExtResource("2_qd4js")
+region = Rect2(64, 0, 32, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xi512"]
+atlas = ExtResource("2_qd4js")
+region = Rect2(96, 0, 32, 24)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_6b133"]
 atlas = ExtResource("2_gp1hk")
@@ -46,6 +67,31 @@ region = Rect2(128, 0, 32, 24)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_fa1ey"]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qd4js")
+}],
+"loop": true,
+"name": &"cooldown",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fa1ey")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wi2m7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qc2nv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xi512")
+}],
+"loop": false,
+"name": &"cooldown_transition",
+"speed": 20.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_6b133")
@@ -97,7 +143,7 @@ stream = ExtResource("1_x77fm")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_fa1ey")
-frame_progress = 0.680507
+animation = &"cooldown"
 
 [node name="Timer" type="Timer" parent="."]
 one_shot = true
