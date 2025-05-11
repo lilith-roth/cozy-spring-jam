@@ -14,6 +14,8 @@ use crate::{
 pub enum GunAttribute {
     Cooldown,
     Spread,
+    BulletCount,
+    MultishotSpread,
     Bullets(BulletAttribute),
 }
 
@@ -50,6 +52,7 @@ impl INode2D for Gun {
         let mut attributes = Attributes::new();
         attributes
             .set_base(GunAttribute::Spread, 0.4)
+            .set_base(GunAttribute::BulletCount, 1.0)
             .set_base(GunAttribute::Cooldown, 1.0)
             .set_base(GunAttribute::Bullets(BulletAttribute::Power), 1.0)
             .set_base(GunAttribute::Bullets(BulletAttribute::Lifetime), 1.0)
@@ -108,7 +111,7 @@ impl Gun {
         self.play_animation("shoot", false);
         if let Some(mut bullets) = BulletManager::for_node(self.base().upcast_ref()) {
             let pos = self.base().get_global_position();
-            let rotation = self.get_bullet_rotation();
+            let self_rotation = self.base().get_global_rotation();
 
             let mut base_attributes = HashMap::new();
             for bullet_attr in BulletAttribute::ALL {
@@ -123,7 +126,17 @@ impl Gun {
                 is_player_bullet: self.is_player_gun,
             };
 
-            bullets.bind_mut().spawn_bullet(pos, rotation, params);
+            let bullet_count = self.attr().get_int(GunAttribute::BulletCount);
+            let multishot_spread = self.attr().get(GunAttribute::MultishotSpread);
+            for i in 0..bullet_count {
+                let direct_rotation =
+                    self_rotation + (i as f32 / bullet_count as f32 - 0.5) * multishot_spread;
+                let rotation = self.get_bullet_rotation(direct_rotation);
+
+                bullets
+                    .bind_mut()
+                    .spawn_bullet(pos, rotation, params.clone());
+            }
         }
     }
 
@@ -134,11 +147,11 @@ impl Gun {
         self.shooting = shooting;
     }
 
-    fn get_bullet_rotation(&mut self) -> f32 {
+    fn get_bullet_rotation(&mut self, direct: f32) -> f32 {
         let mut rng = RandomNumberGenerator::new_gd();
         let spread = self.attr().get(GunAttribute::Spread);
         let translation_diff = rng.randf_range(-spread, spread) / 2.0;
-        self.base().get_global_rotation() + translation_diff
+        direct + translation_diff
     }
 
     fn start_cooldown(&mut self) {
