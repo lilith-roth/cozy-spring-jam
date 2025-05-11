@@ -69,6 +69,7 @@ animations = [{
 size = Vector2(32, 32)
 
 [node name="PlayerScene" type="Player" node_paths=PackedStringArray("gun") groups=["player"]]
+damage_camera_shake_trauma = 0.5
 gun = NodePath("Gun")
 collision_layer = 2
 
@@ -87,7 +88,7 @@ shape = SubResource("RectangleShape2D_vefth")
 
 [node name="Gun" parent="." instance=ExtResource("2_vefth")]
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="PlayerCamera" parent="."]
 anchor_mode = 0
 
 [node name="DamageCooldownTimer" type="Timer" parent="."]

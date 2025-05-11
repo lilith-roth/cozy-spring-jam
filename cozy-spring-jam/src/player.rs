@@ -4,11 +4,8 @@ use crate::gun::Gun;
 use crate::player::health_hud::HealthHud;
 use crate::room::Room;
 use godot::builtin::{Vector2, real};
-use godot::classes::{
-    AnimatedSprite2D, Camera2D, CharacterBody2D, Control, ICharacterBody2D, Input, InputEvent,
-    Node, PackedScene, Timer,
-};
-use godot::global::godot_print;
+use godot::classes::{AnimatedSprite2D, Camera2D, CharacterBody2D, Control, ICamera2D, ICharacterBody2D, Input, Node, PackedScene, Timer};
+use godot::global::{godot_print, pow, randf_range};
 use godot::obj::{Base, Gd, WithBaseField};
 use godot::prelude::{GodotClass, godot_api, load};
 use std::cmp::Ordering;
@@ -28,6 +25,8 @@ pub struct Player {
     health: i16,
     #[export]
     speed: f32,
+    #[export]
+    damage_camera_shake_trauma: f64,
 
     #[export]
     gun: Option<Gd<Gun>>,
@@ -193,6 +192,8 @@ impl Player {
             return;
         }
         self.health -= amount;
+        let mut camera: Gd<PlayerCamera> = self.base_mut().find_child("Camera2D").expect("Could not find camera on Player!").cast();
+        camera.bind_mut().add_trauma(self.damage_camera_shake_trauma);
         if self.health <= 0 {
             self.base_mut().get_tree().unwrap().quit();
         }
@@ -217,6 +218,7 @@ impl ICharacterBody2D for Player {
             orientation: Orientation::Right,
             gun: None,
             base,
+            damage_camera_shake_trauma: 0.01,
         }
     }
 
@@ -254,6 +256,66 @@ impl Player {
         if let Some(mut gun) = self.get_gun() {
             gun.bind_mut()
                 .set_shooting(input.is_action_pressed("shoot"));
+        }
+    }
+}
+
+#[derive(GodotClass)]
+#[class(base=Camera2D)]
+struct PlayerCamera {
+    decay: f32,
+    max_offset: Vector2,
+    max_roll: f32,
+    trauma: f64,
+    trauma_power: u16,
+    base: Base<Camera2D>
+}
+
+#[godot_api]
+impl PlayerCamera {
+    fn shake(&mut self) {
+
+        let amount = pow(self.trauma, self.trauma_power as f64);
+        let max_roll = self.max_roll;
+        let max_offset = self.max_offset;
+        self.base_mut().set_rotation(max_roll * amount as f32 * randf_range(
+            -1.0,
+            1.0
+        ) as f32);
+        self.base_mut().set_offset(Vector2 {
+            x: max_offset.x * amount as real * randf_range(-1.0, 1.0) as real,
+            y: max_offset.y * amount as real * randf_range(-1.0, 1.0) as real,
+        });
+    }
+
+    fn add_trauma(&mut self, amount: f64) {
+        self.trauma = self.trauma + amount;
+        if self.trauma > 1.0 {
+            self.trauma = 1.0;
+        }
+    }
+}
+
+#[godot_api]
+impl ICamera2D for PlayerCamera {
+    fn init(base: Base<Self::Base>) -> Self {
+        Self {
+            decay: 0.8,
+            max_offset: Vector2{x: 25.0, y: 10.0},
+            max_roll: 0.1,
+            trauma: 0.0,
+            trauma_power: 2,
+            base,
+        }
+    }
+
+    fn process(&mut self, delta: f64) {
+        if self.trauma > 0.0 {
+            self.trauma = self.trauma - self.decay as f64 * delta;
+            if self.trauma < 0.0 {
+                self.trauma = 0.0;
+            }
+            self.shake();
         }
     }
 }
