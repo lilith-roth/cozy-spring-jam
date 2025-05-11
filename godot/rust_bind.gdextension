@@ -12,3 +12,5 @@ macos.debug =            "res://../cozy-spring-jam/target/debug/libcozy_spring_j
 macos.release =          "res://../cozy-spring-jam/target/release/libcozy_spring_jam.dylib"
 macos.debug.arm64 =      "res://../cozy-spring-jam/target/debug/libcozy_spring_jam.dylib"
 macos.release.arm64 =    "res://../cozy-spring-jam/target/release/libcozy_spring_jam.dylib"
+web.debug.wasm32 =       "res://../cozy-spring-jam/target/wasm32-unknown-emscripten/debug/cozy_spring_jam.wasm"
+web.release.wasm32 =     "res://../cozy-spring-jam/target/wasm32-unknown-emscripten/release/cozy_spring_jam.wasm"
