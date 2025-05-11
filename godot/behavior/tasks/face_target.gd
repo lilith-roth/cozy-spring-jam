@@ -29,4 +29,8 @@ func _tick(_delta: float) -> Status:
 	var dir: float = target.global_position.x - agent.global_position.x
 	agent.velocity = Vector2.ZERO
 	agent.face_dir(dir)
+	var self_center = Vector2(agent.global_position.x + 8, agent.global_position.y + 8)
+	var target_center = Vector2(target.global_position.x + 8, target.global_position.y + 8)
+	if target_center.distance_squared_to(self_center) > 840:
+		return RUNNING
 	return SUCCESS

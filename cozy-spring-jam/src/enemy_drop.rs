@@ -15,7 +15,6 @@ pub struct EnemyDrop {
 #[godot_api]
 impl EnemyDrop {
     fn on_body_entered(&mut self, node: Gd<Node>) {
-        godot_print!("{:?}", node.get_class());
         if node.is_class("Player") {
             godot_print!("Player picked up");
             let mut player_node: Gd<Player> = node.cast();

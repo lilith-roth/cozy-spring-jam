@@ -1,8 +1,9 @@
-[gd_resource type="BehaviorTree" load_steps=14 format=3 uid="uid://d02e70bd5jm3k"]
+[gd_resource type="BehaviorTree" load_steps=23 format=3 uid="uid://d02e70bd5jm3k"]
 
 [ext_resource type="Script" uid="uid://dvsqkkll2fetj" path="res://behavior/tasks/get_first_in_group.gd" id="1_jmkbe"]
 [ext_resource type="Script" uid="uid://cwqyeigrb2aoj" path="res://behavior/tasks/goto_target.gd" id="2_jmkbe"]
 [ext_resource type="Script" uid="uid://dml6tegvgr2eh" path="res://behavior/tasks/face_target.gd" id="3_cc0pl"]
+[ext_resource type="Script" uid="uid://cg36ncis7s3o7" path="res://behavior/tasks/flank_target.gd" id="4_llq45"]
 
 [sub_resource type="BlackboardPlan" id="BlackboardPlan_wpi3q"]
 var/speed/name = &"speed"
@@ -10,14 +11,38 @@ var/speed/type = 3
 var/speed/value = 200.0
 var/speed/hint = 0
 var/speed/hint_string = ""
+var/start/name = &"start"
+var/start/type = 1
+var/start/value = false
+var/start/hint = 0
+var/start/hint_string = ""
 
 [sub_resource type="BTRandomWait" id="BTRandomWait_wpi3q"]
-min_duration = 0.7
-max_duration = 1.5
+min_duration = 0.5
+max_duration = 1.0
+
+[sub_resource type="BBVariant" id="BBVariant_llq45"]
+type = 1
+saved_value = true
+resource_name = "true"
+
+[sub_resource type="BTSetVar" id="BTSetVar_cc0pl"]
+variable = &"start"
+value = SubResource("BBVariant_llq45")
 
 [sub_resource type="BTSequence" id="BTSequence_m5xp2"]
 custom_name = "Idle"
-children = [SubResource("BTRandomWait_wpi3q")]
+children = [SubResource("BTRandomWait_wpi3q"), SubResource("BTSetVar_cc0pl")]
+
+[sub_resource type="BBVariant" id="BBVariant_2tvr8"]
+type = 1
+saved_value = false
+resource_name = "false"
+
+[sub_resource type="BTCheckVar" id="BTCheckVar_cc0pl"]
+variable = &"start"
+value = SubResource("BBVariant_2tvr8")
+children = [SubResource("BTSequence_m5xp2")]
 
 [sub_resource type="BTAction" id="BTAction_2tvr8"]
 script = ExtResource("1_jmkbe")
@@ -34,20 +59,38 @@ target_desired_distance = 4.0
 time_limit = 2.0
 children = [SubResource("BTAction_llq45")]
 
+[sub_resource type="BTAlwaysSucceed" id="BTAlwaysSucceed_llq45"]
+children = [SubResource("BTTimeLimit_gayn4")]
+
 [sub_resource type="BTSequence" id="BTSequence_e83ie"]
 custom_name = "Pursue player"
-children = [SubResource("BTAction_2tvr8"), SubResource("BTTimeLimit_gayn4")]
+children = [SubResource("BTAction_2tvr8"), SubResource("BTAlwaysSucceed_llq45")]
 
 [sub_resource type="BTAction" id="BTAction_1hoxm"]
 script = ExtResource("3_cc0pl")
 target_var = &"target"
 
-[sub_resource type="BTSequence" id="BTSequence_jmkbe"]
-custom_name = "Melee attack"
+[sub_resource type="BTTimeLimit" id="BTTimeLimit_cc0pl"]
+time_limit = 2.0
 children = [SubResource("BTAction_1hoxm")]
 
+[sub_resource type="BTAction" id="BTAction_cc0pl"]
+custom_name = "Take distance to $target"
+script = ExtResource("4_llq45")
+target_var = &"target"
+distance_min = 150.0
+distance_max = 225.0
+
+[sub_resource type="BTTimeLimit" id="BTTimeLimit_llq45"]
+time_limit = 3.0
+children = [SubResource("BTAction_cc0pl")]
+
+[sub_resource type="BTSequence" id="BTSequence_jmkbe"]
+custom_name = "Melee attack"
+children = [SubResource("BTTimeLimit_cc0pl"), SubResource("BTTimeLimit_llq45")]
+
 [sub_resource type="BTSequence" id="BTSequence_llq45"]
-children = [SubResource("BTSequence_m5xp2"), SubResource("BTSequence_e83ie"), SubResource("BTSequence_jmkbe")]
+children = [SubResource("BTCheckVar_cc0pl"), SubResource("BTSequence_e83ie"), SubResource("BTSequence_jmkbe")]
 
 [resource]
 blackboard_plan = SubResource("BlackboardPlan_wpi3q")

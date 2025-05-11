@@ -32,6 +32,11 @@ func _exit() -> void:
 func _tick(_delta: float) -> Status:
 	if nav_agent.is_navigation_finished():
 		return SUCCESS
+	
+	nav_agent = agent.find_child("NavigationAgent2D")
+	var target: Node2D = blackboard.get_var(target_var, null)
+	if is_instance_valid(target):
+		actor_setup.call_deferred(target)
 	agent.move_towards_target()
 	return RUNNING
 

@@ -89,3 +89,6 @@ shape = SubResource("RectangleShape2D_vefth")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 anchor_mode = 0
+
+[node name="DamageCooldownTimer" type="Timer" parent="."]
+one_shot = true

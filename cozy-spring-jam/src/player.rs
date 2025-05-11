@@ -6,11 +6,12 @@ use crate::room::Room;
 use godot::builtin::{Vector2, real};
 use godot::classes::{
     AnimatedSprite2D, Camera2D, CharacterBody2D, Control, ICharacterBody2D, Input, InputEvent,
-    Node, PackedScene,
+    Node, PackedScene, Timer,
 };
 use godot::obj::{Base, Gd, WithBaseField};
 use godot::prelude::{GodotClass, godot_api, load};
 use std::cmp::Ordering;
+use godot::global::godot_print;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Orientation {
@@ -180,6 +181,15 @@ impl Player {
 
     #[func]
     pub fn damage_player(&mut self, amount: i16) {
+        let mut damage_cooldown_timer: Gd<Timer> = self
+            .base_mut()
+            .find_child("DamageCooldownTimer")
+            .expect("Player needs a Timer called `DamageCooldownTimer`!")
+            .cast();
+        if !damage_cooldown_timer.is_stopped() {
+            godot_print!("Player on dmg cooldown!");
+            return;
+        }
         self.health -= amount;
         if self.health <= 0 {
             self.base_mut().get_tree().unwrap().quit();
@@ -187,6 +197,7 @@ impl Player {
         if self.health > self.max_health as i16 {
             self.health = self.max_health as i16;
         }
+        damage_cooldown_timer.start();
     }
 }
 

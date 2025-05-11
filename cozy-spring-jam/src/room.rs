@@ -500,12 +500,7 @@ impl Room {
         }
     }
 
-    fn should_have_edge_wall(
-        &self,
-        x: i32,
-        y: i32,
-        layout: &RoomLayout,
-    ) -> bool {
+    fn should_have_edge_wall(&self, x: i32, y: i32, layout: &RoomLayout) -> bool {
         let center_dist_x = x - self.width / 2;
         let center_dist_y = y - self.height / 2;
         let max_dist = self.params.exit_size as i32 / 2;
@@ -558,10 +553,9 @@ impl Room {
                             exit_bottom: rng.randi() % 2 == 0,
                             exit_right: rng.randi() % 2 == 0,
                         });
-                        new_room_node.bind_mut().generate(
-                            rng.randi(),
-                            &new_layout.clone().unwrap(),
-                        );
+                        new_room_node
+                            .bind_mut()
+                            .generate(rng.randi(), &new_layout.clone().unwrap());
                         new_room_node.bind_mut().room_layout = new_layout;
                         self.base_mut()
                             .get_parent()
@@ -591,10 +585,9 @@ impl Room {
                             exit_bottom: rng.randi() % 2 == 0,
                             exit_right: true,
                         });
-                        new_room_node.bind_mut().generate(
-                            rng.randi(),
-                            &new_layout.clone().unwrap(),
-                        );
+                        new_room_node
+                            .bind_mut()
+                            .generate(rng.randi(), &new_layout.clone().unwrap());
                         new_room_node.bind_mut().room_layout = new_layout;
                         self.base_mut()
                             .get_parent()
@@ -624,10 +617,9 @@ impl Room {
                             exit_bottom: rng.randi() % 2 == 0,
                             exit_right: rng.randi() % 2 == 0,
                         });
-                        new_room_node.bind_mut().generate(
-                            rng.randi(),
-                            &new_layout.clone().unwrap(),
-                        );
+                        new_room_node
+                            .bind_mut()
+                            .generate(rng.randi(), &new_layout.clone().unwrap());
                         new_room_node.bind_mut().room_layout = new_layout;
                         self.base_mut()
                             .get_parent()
@@ -657,10 +649,9 @@ impl Room {
                             exit_bottom: true,
                             exit_right: rng.randi() % 2 == 0,
                         });
-                        new_room_node.bind_mut().generate(
-                            rng.randi(),
-                            &new_layout.clone().unwrap(),
-                        );
+                        new_room_node
+                            .bind_mut()
+                            .generate(rng.randi(), &new_layout.clone().unwrap());
                         new_room_node.bind_mut().room_layout = new_layout;
                         self.base_mut()
                             .get_parent()
@@ -685,9 +676,7 @@ impl Room {
             .get_nodes_in_group("room");
         for i in 0..rooms.len() {
             let mut room: Gd<Room> = rooms.get(i).expect("Could not retrieve room!").cast();
-            if pos.x == room.get_global_position().x
-                && pos.y == room.get_global_position().y
-            {
+            if pos.x == room.get_global_position().x && pos.y == room.get_global_position().y {
                 godot_print!("Duplicated room! {:?}", pos);
                 return Option::from(room);
             }

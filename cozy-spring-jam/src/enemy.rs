@@ -1,9 +1,10 @@
 use crate::enemy_drop::EnemyDrop;
 use crate::gun::Gun;
+use crate::player::Player;
 use godot::builtin::{Array, Vector2, real};
-use godot::classes::{CharacterBody2D, ICharacterBody2D, NavigationAgent2D, Node, PackedScene};
-use godot::global::randi_range;
-use godot::obj::{Base, Gd, WithBaseField};
+use godot::classes::{Area2D, CharacterBody2D, IArea2D, ICharacterBody2D, IRigidBody2D, NavigationAgent2D, Node, Node2D, PackedScene, RigidBody2D, Timer};
+use godot::global::{godot_print, randi_range};
+use godot::obj::{Base, Gd, WithBaseField, WithUserSignals};
 use godot::prelude::{GodotClass, godot_api};
 
 #[derive(GodotClass)]
@@ -149,5 +150,49 @@ impl ICharacterBody2D for Enemy {
 
     fn ready(&mut self) {
         self.base_mut().set_y_sort_enabled(true);
+    }
+}
+
+#[derive(GodotClass)]
+#[class(base=Area2D)]
+struct MeleeDetector {
+    #[export]
+    is_melee: bool,
+
+    #[export]
+    melee_damage: u16,
+
+    base: Base<Area2D>,
+}
+
+#[godot_api]
+impl MeleeDetector {
+    fn on_body_entered(&mut self, node: Gd<Node2D>) {
+        if !self.is_melee {
+            return;
+        }
+        if node.is_class("Player") {
+            godot_print!("Player damaged for {}", self.melee_damage);
+            let mut player_node: Gd<Player> = node.cast();
+            player_node
+                .bind_mut()
+                .damage_player(self.melee_damage as i16);
+        }
+    }
+}
+
+#[godot_api]
+impl IArea2D for MeleeDetector {
+    fn init(base: Base<Self::Base>) -> Self {
+        Self {
+            is_melee: false,
+            melee_damage: 1,
+            base: base,
+        }
+    }
+    fn ready(&mut self) {
+        self.signals()
+            .body_entered()
+            .connect_self(Self::on_body_entered);
     }
 }

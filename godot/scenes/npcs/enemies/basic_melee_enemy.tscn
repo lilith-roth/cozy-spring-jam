@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://uy4pxcfg127h"]
+[gd_scene load_steps=7 format=3 uid="uid://uy4pxcfg127h"]
 
 [ext_resource type="Texture2D" uid="uid://c6fi7b1nhp0jq" path="res://assets/npcs/enemy_slime.png" id="1_8r5q3"]
 [ext_resource type="BehaviorTree" uid="uid://d02e70bd5jm3k" path="res://behavior/trees/enemy_melee.tres" id="2_6n6l3"]
@@ -15,12 +15,15 @@ animations = [{
 }]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_6n6l3"]
-radius = 13.0
 
 [sub_resource type="BlackboardPlan" id="BlackboardPlan_8r5q3"]
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_rvgiw"]
+radius = 13.0
+
 [node name="BasicMeleeEnemy" type="Enemy" groups=["enemy"]]
 collision_layer = 4
+collision_mask = 2
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_xyd4o")
@@ -38,9 +41,18 @@ blackboard_plan = SubResource("BlackboardPlan_8r5q3")
 
 [node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
 path_desired_distance = 5.0
-target_desired_distance = 40.0
+target_desired_distance = 16.0
 path_postprocessing = 1
 avoidance_enabled = true
 debug_enabled = true
 debug_use_custom = true
 debug_path_custom_color = Color(0.786108, 0.327246, 0.715393, 1)
+
+[node name="MeleeDetector" type="MeleeDetector" parent="."]
+is_melee = true
+collision_layer = 0
+collision_mask = 2
+
+[node name="MeleeRangeShape" type="CollisionShape2D" parent="MeleeDetector"]
+position = Vector2(0, 3)
+shape = SubResource("CircleShape2D_rvgiw")
