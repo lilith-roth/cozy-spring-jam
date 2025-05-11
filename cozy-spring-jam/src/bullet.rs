@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{
     attribute::{Attributes, Effect, Operation},
     enemy::Enemy,
@@ -18,6 +20,17 @@ pub enum BulletAttribute {
     Speed,
     Lifetime,
     Power,
+}
+
+impl BulletAttribute {
+    pub const ALL: &[Self] = &[
+        Self::MaxBounces,
+        Self::BounceSpeedPreservation,
+        Self::BouncePowerPreservation,
+        Self::Speed,
+        Self::Lifetime,
+        Self::Power,
+    ];
 }
 
 #[derive(GodotClass)]
@@ -47,10 +60,18 @@ struct Bullet {
 #[godot_api]
 impl IRigidBody2D for Bullet {
     fn init(base: Base<RigidBody2D>) -> Self {
+        let mut attributes = Attributes::new();
+        attributes
+            .set_base(BulletAttribute::Power, 1.0)
+            .set_base(BulletAttribute::Lifetime, 1.0)
+            .set_base(BulletAttribute::Speed, 200.0)
+            .set_base(BulletAttribute::MaxBounces, 0.0)
+            .set_base(BulletAttribute::BouncePowerPreservation, 1.0)
+            .set_base(BulletAttribute::BounceSpeedPreservation, 1.0);
         Self {
             bounce_sfx: None,
             animated_sprite: None,
-            attributes: Attributes::new(),
+            attributes,
             age: 0.0,
             bounces: 0,
             dead: false,
@@ -204,27 +225,8 @@ impl Bullet {
 
 #[derive(Debug, Clone)]
 pub struct BulletParams {
-    pub power: f32,
-    pub speed: f32,
-    pub max_bounces: u32,
-    pub bounce_power_preservation: f32,
-    pub bounce_speed_preservation: f32,
-    pub lifetime: f32,
+    pub base_attributes: HashMap<BulletAttribute, f32>,
     pub is_player_bullet: bool,
-}
-
-impl Default for BulletParams {
-    fn default() -> Self {
-        Self {
-            power: 1.0,
-            speed: 400.0,
-            max_bounces: 0,
-            bounce_speed_preservation: 1.0,
-            bounce_power_preservation: 1.0,
-            lifetime: 0.2,
-            is_player_bullet: true,
-        }
-    }
 }
 
 #[derive(GodotClass)]
@@ -274,20 +276,10 @@ impl BulletManager {
         bullet.set_rotation(rotation);
         {
             let mut bullet_mut = bullet.bind_mut();
-            bullet_mut
-                .attr()
-                .set_base(BulletAttribute::Power, params.power)
-                .set_base(BulletAttribute::Speed, params.speed)
-                .set_base(BulletAttribute::MaxBounces, params.max_bounces as f32)
-                .set_base(
-                    BulletAttribute::BounceSpeedPreservation,
-                    params.bounce_speed_preservation,
-                )
-                .set_base(
-                    BulletAttribute::BouncePowerPreservation,
-                    params.bounce_power_preservation,
-                )
-                .set_base(BulletAttribute::Lifetime, params.lifetime);
+            bullet_mut.is_player_bullet = params.is_player_bullet;
+            for (attr, value) in params.base_attributes {
+                bullet_mut.attr().set_base(attr, value);
+            }
         }
 
         self.base_mut().add_child(&bullet);

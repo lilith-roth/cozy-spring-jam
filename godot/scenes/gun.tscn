@@ -90,8 +90,6 @@ animations = [{
 [node name="Gun" type="Gun" node_paths=PackedStringArray("shoot_sfx", "animation", "cooldown_timer")]
 shoot_sfx = NodePath("AudioStreamPlayer2D")
 animation = NodePath("AnimatedSprite2D")
-cooldown = 0.1
-spread = 0.5
 cooldown_timer = NodePath("Timer")
 
 [node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]

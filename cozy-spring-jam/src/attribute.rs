@@ -72,6 +72,12 @@ impl<A> Attributes<A> {
     }
 }
 
+impl<A> Default for Attributes<A> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<A: Copy + Eq + Hash> Attributes<A> {
     pub fn set_base(&mut self, attr: A, value: f32) -> &mut Self {
         self.base.insert(attr, value);

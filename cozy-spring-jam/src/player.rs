@@ -230,6 +230,9 @@ impl ICharacterBody2D for Player {
 
     fn ready(&mut self) {
         self.play_animation("default");
+        if let Some(mut gun) = self.get_gun() {
+            gun.bind_mut().set_is_player_gun(true);
+        }
     }
 }
 
