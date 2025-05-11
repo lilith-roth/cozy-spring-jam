@@ -29,16 +29,19 @@ visible = false
 [node name="Rooms" type="Node" parent="."]
 
 [node name="RoomScene" parent="Rooms" instance=ExtResource("5_5jhce")]
+not_first_room = false
 
 [node name="npcs" type="Node2D" parent="."]
 y_sort_enabled = true
 
 [node name="BasicMeleeEnemy" parent="npcs" instance=ExtResource("6_vus8m")]
+process_mode = 4
 y_sort_enabled = true
 position = Vector2(303, 204)
 collision_layer = 1
 
 [node name="BasicRangedEnemy" parent="npcs" instance=ExtResource("7_1sh3m")]
+process_mode = 4
 position = Vector2(349, 123)
 
 [node name="BulletManager" type="BulletManager" parent="."]

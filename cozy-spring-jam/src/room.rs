@@ -373,6 +373,9 @@ pub struct Room {
 
     adjacent_rooms_generated: bool,
 
+    #[export]
+    not_first_room: bool,
+
     base: Base<Node2D>,
 }
 
@@ -388,23 +391,26 @@ impl INode2D for Room {
             room_scene: load("res://scenes/room_scene.tscn"),
             room_layout: None,
             adjacent_rooms_generated: false,
+            not_first_room: true,
             base,
         }
     }
 
     fn ready(&mut self) {
-        let mut rng = RandomNumberGenerator::new_gd();
-        let layout = Option::from(RoomLayout {
-            exit_top: rng.randi() % 2 == 0,
-            exit_left: rng.randi() % 2 == 0,
-            exit_bottom: rng.randi() % 2 == 0,
-            exit_right: rng.randi() % 2 == 0,
-        });
-        self.generate(
-            rng.randi(),
-            &layout.clone().expect("Could not clone room layout"),
-        );
-        self.room_layout = layout;
+        if !self.not_first_room {
+            let mut rng = RandomNumberGenerator::new_gd();
+            let layout = Option::from(RoomLayout {
+                exit_top: rng.randi() % 2 == 0,
+                exit_left: rng.randi() % 2 == 0,
+                exit_bottom: rng.randi() % 2 == 0,
+                exit_right: rng.randi() % 2 == 0,
+            });
+            self.generate(
+                rng.randi(),
+                &layout.clone().expect("Could not clone room layout"),
+            );
+            self.room_layout = layout;
+        }
     }
 }
 
@@ -531,8 +537,9 @@ impl Room {
                 godot_error!("Room layout not stored!")
             }
             Some(layout) => {
+                let mut rng = RandomNumberGenerator::new_gd();
                 let current_room_position = self.base_mut().get_global_position();
-                godot_print!("Generating adjacent room to {:?}", current_room_position);
+                godot_print!("Generating adjacent rooms to {:?}", current_room_position);
                 if layout.exit_right {
                     let new_room = self.room_scene.instantiate();
                     let mut new_room_node: Gd<Room> =
@@ -545,6 +552,17 @@ impl Room {
                         new_room_node.queue_free();
                     } else {
                         new_room_node.set_position(new_room_position);
+                        let new_layout = Option::from(RoomLayout {
+                            exit_top: rng.randi() % 2 == 0,
+                            exit_left: true,
+                            exit_bottom: rng.randi() % 2 == 0,
+                            exit_right: rng.randi() % 2 == 0,
+                        });
+                        new_room_node.bind_mut().generate(
+                            rng.randi(),
+                            &new_layout.clone().unwrap(),
+                        );
+                        new_room_node.bind_mut().room_layout = new_layout;
                         self.base_mut()
                             .get_parent()
                             .expect("Could not get parent!")
@@ -567,6 +585,17 @@ impl Room {
                         new_room_node.queue_free();
                     } else {
                         new_room_node.set_position(new_room_position);
+                        let new_layout = Option::from(RoomLayout {
+                            exit_top: rng.randi() % 2 == 0,
+                            exit_left: rng.randi() % 2 == 0,
+                            exit_bottom: rng.randi() % 2 == 0,
+                            exit_right: true,
+                        });
+                        new_room_node.bind_mut().generate(
+                            rng.randi(),
+                            &new_layout.clone().unwrap(),
+                        );
+                        new_room_node.bind_mut().room_layout = new_layout;
                         self.base_mut()
                             .get_parent()
                             .expect("Could not get parent!")
@@ -589,6 +618,17 @@ impl Room {
                         new_room_node.queue_free();
                     } else {
                         new_room_node.set_position(new_room_position);
+                        let new_layout = Option::from(RoomLayout {
+                            exit_top: true,
+                            exit_left: rng.randi() % 2 == 0,
+                            exit_bottom: rng.randi() % 2 == 0,
+                            exit_right: rng.randi() % 2 == 0,
+                        });
+                        new_room_node.bind_mut().generate(
+                            rng.randi(),
+                            &new_layout.clone().unwrap(),
+                        );
+                        new_room_node.bind_mut().room_layout = new_layout;
                         self.base_mut()
                             .get_parent()
                             .expect("Could not get parent!")
@@ -611,6 +651,17 @@ impl Room {
                         new_room_node.queue_free();
                     } else {
                         new_room_node.set_position(new_room_position);
+                        let new_layout = Option::from(RoomLayout {
+                            exit_top: rng.randi() % 2 == 0,
+                            exit_left: rng.randi() % 2 == 0,
+                            exit_bottom: true,
+                            exit_right: rng.randi() % 2 == 0,
+                        });
+                        new_room_node.bind_mut().generate(
+                            rng.randi(),
+                            &new_layout.clone().unwrap(),
+                        );
+                        new_room_node.bind_mut().room_layout = new_layout;
                         self.base_mut()
                             .get_parent()
                             .expect("Could not get parent!")
@@ -634,10 +685,8 @@ impl Room {
             .get_nodes_in_group("room");
         for i in 0..rooms.len() {
             let mut room: Gd<Room> = rooms.get(i).expect("Could not retrieve room!").cast();
-            if pos.x > room.get_position().x
-                && pos.x < room.get_position().x + 576.0
-                && pos.y > room.get_position().y
-                && pos.y < room.get_position().y + 352.0
+            if pos.x == room.get_global_position().x
+                && pos.y == room.get_global_position().y
             {
                 godot_print!("Duplicated room! {:?}", pos);
                 return Option::from(room);
