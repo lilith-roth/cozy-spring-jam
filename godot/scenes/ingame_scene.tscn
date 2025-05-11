@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://bng6qs1mwwsq2" path="res://scenes/npcs/enemies/basic_ranged_enemy.tscn" id="7_1sh3m"]
 
 [node name="IngameScene" type="Node2D"]
+y_sort_enabled = true
 script = ExtResource("1_objyc")
 
 [node name="UI" type="CanvasLayer" parent="."]
@@ -26,7 +27,8 @@ visible = false
 
 [node name="HealthHuds" type="Node" parent="Hud"]
 
-[node name="Rooms" type="Node" parent="."]
+[node name="Rooms" type="Node2D" parent="."]
+y_sort_enabled = true
 
 [node name="RoomScene" parent="Rooms" instance=ExtResource("5_5jhce")]
 not_first_room = false
@@ -45,9 +47,11 @@ process_mode = 4
 position = Vector2(349, 123)
 
 [node name="BulletManager" type="BulletManager" parent="."]
+y_sort_enabled = true
 
 [node name="PlayerScene" parent="." instance=ExtResource("2_2577t")]
 max_health = null
 health = null
 speed = null
+y_sort_enabled = true
 position = Vector2(155, 92)
