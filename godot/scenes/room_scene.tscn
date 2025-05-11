@@ -3,11 +3,12 @@
 [ext_resource type="TileSet" uid="uid://p85q8iw0h88p" path="res://assets/walls.tres" id="1_ejeae"]
 [ext_resource type="TileSet" uid="uid://t4rf4ywc6jpm" path="res://assets/floor.tres" id="2_ep7ff"]
 
-[node name="RoomScene" type="Room" node_paths=PackedStringArray("floor_layer", "walls_layer")]
+[node name="RoomScene" type="Room" node_paths=PackedStringArray("floor_layer", "walls_layer") groups=["room"]]
 floor_layer = NodePath("FloorLayer")
 walls_layer = NodePath("WallsLayer")
 width = 18
 height = 11
+z_index = -1
 y_sort_enabled = true
 
 [node name="WallsLayer" type="WallsLayer" parent="."]

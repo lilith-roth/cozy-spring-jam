@@ -2,10 +2,11 @@ mod health_hud;
 
 use crate::gun::Gun;
 use crate::player::health_hud::HealthHud;
+use crate::room::Room;
 use godot::builtin::{Vector2, real};
 use godot::classes::{
-    AnimatedSprite2D, CharacterBody2D, Control, ICharacterBody2D, Input, InputEvent, Node,
-    PackedScene,
+    AnimatedSprite2D, Camera2D, CharacterBody2D, Control, ICharacterBody2D, Input, InputEvent,
+    Node, PackedScene,
 };
 use godot::obj::{Base, Gd, WithBaseField};
 use godot::prelude::{GodotClass, godot_api, load};
@@ -133,6 +134,32 @@ impl Player {
             self.orientation = Orientation::Left;
         } else if movement_vec.x > 0.0 {
             self.orientation = Orientation::Right;
+        }
+
+        let new_position = self.base_mut().get_global_position();
+        let rooms = self
+            .base_mut()
+            .get_tree()
+            .expect("Could not retrieve tree")
+            .get_nodes_in_group("room");
+        for i in 0..rooms.len() {
+            let mut room: Gd<Room> = rooms.get(i).expect("Could not retrieve room!").cast();
+            if new_position.x > room.get_global_position().x
+                && new_position.x < room.get_global_position().x + 576.0
+                && new_position.y > room.get_global_position().y
+                && new_position.y < room.get_global_position().y + 352.0
+            {
+                // Generating adjacent rooms to the current room
+                room.bind_mut().generate_adjacent_rooms();
+                // Adjusting the camera for the current room
+                let mut camera_node: Gd<Camera2D> = self
+                    .base_mut()
+                    .find_child("Camera2D")
+                    .expect("Could not get camera node")
+                    .cast();
+                camera_node.set_global_position(room.get_global_position());
+                break;
+            }
         }
     }
 

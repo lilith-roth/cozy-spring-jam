@@ -1,7 +1,6 @@
-[gd_scene load_steps=9 format=3 uid="uid://bng6qs1mwwsq2"]
+[gd_scene load_steps=8 format=3 uid="uid://bng6qs1mwwsq2"]
 
 [ext_resource type="Texture2D" uid="uid://c6fi7b1nhp0jq" path="res://assets/npcs/enemy_slime.png" id="1_1y62i"]
-[ext_resource type="PackedScene" uid="uid://dys5a417j6bqq" path="res://scenes/npcs/enemies/enemy_drops/drop_health.tscn" id="1_u0tjr"]
 [ext_resource type="BehaviorTree" uid="uid://ckqn5rvlffg88" path="res://behavior/trees/enemy_ranged.tres" id="2_1y62i"]
 [ext_resource type="PackedScene" uid="uid://pf5dccxmrlrw" path="res://scenes/gun.tscn" id="3_sb1ur"]
 
@@ -26,8 +25,6 @@ radius = 13.0
 
 [node name="BasicRangedEnemy" type="Enemy" node_paths=PackedStringArray("gun") groups=["enemy"]]
 gun = NodePath("Gun")
-loot_pool = Array[PackedScene]([ExtResource("1_u0tjr")])
-loot_chances = Array[int]([100])
 collision_layer = 4
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
@@ -54,3 +51,5 @@ debug_use_custom = true
 debug_path_custom_color = Color(0.786108, 0.327246, 0.715393, 1)
 
 [node name="Gun" parent="." instance=ExtResource("3_sb1ur")]
+cooldown = 0.0
+spread = 0.0

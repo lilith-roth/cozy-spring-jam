@@ -68,9 +68,8 @@ animations = [{
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vefth"]
 size = Vector2(32, 32)
 
-[node name="PlayerScene" type="Player" node_paths=PackedStringArray("gun", "animation") groups=["player"]]
+[node name="PlayerScene" type="Player" node_paths=PackedStringArray("gun") groups=["player"]]
 gun = NodePath("Gun")
-animation = NodePath("AnimatedSprite2D")
 collision_layer = 2
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
@@ -87,3 +86,6 @@ shape = SubResource("RectangleShape2D_vefth")
 [node name="HealthHuds" type="Node" parent="Hud"]
 
 [node name="Gun" parent="." instance=ExtResource("2_vefth")]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+anchor_mode = 0
