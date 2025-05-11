@@ -16,5 +16,6 @@ func _enter() -> void:
 # Called each time this task is ticked (aka executed).
 func _tick(_delta: float) -> Status:
 	var target: Node2D = blackboard.get_var(target_var, null)
-	agent.shoot(target.global_position)
-	return SUCCESS
+	if agent.shoot(target.global_position):
+		return SUCCESS
+	return FAILURE

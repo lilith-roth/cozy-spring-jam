@@ -1,8 +1,8 @@
-[gd_resource type="BehaviorTree" load_steps=14 format=3 uid="uid://ckqn5rvlffg88"]
+[gd_resource type="BehaviorTree" load_steps=17 format=3 uid="uid://ckqn5rvlffg88"]
 
 [ext_resource type="Script" uid="uid://dvsqkkll2fetj" path="res://behavior/tasks/get_first_in_group.gd" id="1_pisv7"]
 [ext_resource type="Script" uid="uid://cg36ncis7s3o7" path="res://behavior/tasks/flank_target.gd" id="2_pisv7"]
-[ext_resource type="Script" path="res://behavior/tasks/attack_ranged.gd" id="3_pisv7"]
+[ext_resource type="Script" uid="uid://cs8l0le3t4srl" path="res://behavior/tasks/attack_ranged.gd" id="3_pisv7"]
 
 [sub_resource type="BlackboardPlan" id="BlackboardPlan_4sxcy"]
 
@@ -37,9 +37,19 @@ children = [SubResource("BTAction_62rma"), SubResource("BTTimeLimit_0xar2")]
 script = ExtResource("3_pisv7")
 target_var = &"target"
 
+[sub_resource type="BTRepeatUntilSuccess" id="BTRepeatUntilSuccess_pisv7"]
+children = [SubResource("BTAction_hrb1m")]
+
+[sub_resource type="BTProbability" id="BTProbability_pisv7"]
+run_chance = 0.8
+children = [SubResource("BTRepeatUntilSuccess_pisv7")]
+
+[sub_resource type="BTRepeatUntilFailure" id="BTRepeatUntilFailure_pisv7"]
+children = [SubResource("BTProbability_pisv7")]
+
 [sub_resource type="BTSequence" id="BTSequence_066rf"]
 custom_name = "Ranged attack"
-children = [SubResource("BTAction_hrb1m")]
+children = [SubResource("BTRepeatUntilFailure_pisv7")]
 
 [sub_resource type="BTSequence" id="BTSequence_ctje6"]
 children = [SubResource("BTSequence_y0y3u"), SubResource("BTSequence_gocso"), SubResource("BTSequence_066rf")]

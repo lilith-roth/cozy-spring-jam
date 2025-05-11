@@ -1,13 +1,14 @@
+use crate::bullet::BulletAttribute;
 use crate::enemy_drop::EnemyDrop;
-use crate::gun::Gun;
+use crate::gun::{Gun, GunAttribute};
 use crate::player::Player;
 use godot::builtin::{Array, Vector2, real};
 use godot::classes::{
     Area2D, CharacterBody2D, IArea2D, ICharacterBody2D, IRigidBody2D, NavigationAgent2D, Node,
-    Node2D, PackedScene, RigidBody2D, Timer,
+    Node2D, PackedScene, RandomNumberGenerator, RigidBody2D, Timer,
 };
 use godot::global::{godot_print, randi_range};
-use godot::obj::{Base, Gd, WithBaseField, WithUserSignals};
+use godot::obj::{Base, Gd, NewGd, WithBaseField, WithUserSignals};
 use godot::prelude::{GodotClass, godot_api};
 
 #[derive(GodotClass)]
@@ -129,11 +130,44 @@ impl Enemy {
     }
 
     #[func]
-    fn shoot(&mut self, target: Vector2) {
+    fn shoot(&mut self, target: Vector2) -> bool {
         self.position_gun(target);
         if let Some(mut gun) = self.get_gun() {
+            if gun.bind().get_on_cooldown() {
+                return false;
+            }
             gun.bind_mut().shoot();
         }
+        true
+    }
+
+    fn randomize_gun(&mut self) {
+        let Some(mut gun) = self.get_gun() else {
+            return;
+        };
+        let mut gun = gun.bind_mut();
+        let mut rng = RandomNumberGenerator::new_gd();
+        gun.attr()
+            .set_base(GunAttribute::Spread, rng.randf_range(0.0, 0.8))
+            .set_base(GunAttribute::Cooldown, rng.randf_range(0.1, 1.0))
+            .set_base(GunAttribute::BulletCount, rng.randf_range(1.0, 5.0))
+            .set_base(GunAttribute::MultishotSpread, rng.randf_range(0.4, 1.5))
+            .set_base(
+                GunAttribute::Bullets(BulletAttribute::Speed),
+                rng.randf_range(200.0, 800.0),
+            )
+            .set_base(
+                GunAttribute::Bullets(BulletAttribute::Power),
+                rng.randf_range(0.5, 3.0),
+            )
+            .set_base(
+                GunAttribute::Bullets(BulletAttribute::MaxBounces),
+                rng.randf_range(0.0, 3.0),
+            )
+            .set_base(
+                GunAttribute::Bullets(BulletAttribute::Lifetime),
+                rng.randf_range(0.1, 3.0),
+            );
     }
 }
 
@@ -152,6 +186,7 @@ impl ICharacterBody2D for Enemy {
     }
 
     fn ready(&mut self) {
+        self.randomize_gun();
         self.base_mut().set_y_sort_enabled(true);
     }
 }

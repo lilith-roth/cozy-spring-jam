@@ -51,5 +51,3 @@ debug_use_custom = true
 debug_path_custom_color = Color(0.786108, 0.327246, 0.715393, 1)
 
 [node name="Gun" parent="." instance=ExtResource("3_sb1ur")]
-cooldown = 0.0
-spread = 0.0
