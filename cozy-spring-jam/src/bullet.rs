@@ -1,3 +1,4 @@
+use crate::enemy::Enemy;
 use godot::{
     classes::{
         AnimatedSprite2D, AudioStreamPlayer2D, GpuParticles2D, IGpuParticles2D, IRigidBody2D,
@@ -5,7 +6,6 @@ use godot::{
     },
     prelude::*,
 };
-use crate::enemy::Enemy;
 
 #[derive(GodotClass)]
 #[class(base=RigidBody2D)]
@@ -143,12 +143,16 @@ impl Bullet {
         if self.is_player_bullet {
             if node.is_class("Enemy") {
                 let mut enemy_node: Gd<Enemy> = node.cast();
-                enemy_node.bind_mut().damage_enemy(self.power.round() as i16);
+                enemy_node
+                    .bind_mut()
+                    .damage_enemy(self.power.round() as i16);
             }
         } else {
             if node.is_class("Player") {
                 let mut enemy_node: Gd<Enemy> = node.cast();
-                enemy_node.bind_mut().damage_enemy(self.power.round() as i16);
+                enemy_node
+                    .bind_mut()
+                    .damage_enemy(self.power.round() as i16);
             }
         }
     }

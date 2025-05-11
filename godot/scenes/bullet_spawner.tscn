@@ -1,3 +1,3 @@
-[gd_scene format=3 uid="uid://bc7j21ns7lksm"]
+[gd_scene load_steps=0 format=3 uid="uid://bc7j21ns7lksm"]
 
 [node name="BulletSpawner" type="Node2D"]

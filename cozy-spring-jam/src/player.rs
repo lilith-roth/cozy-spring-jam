@@ -19,7 +19,7 @@ enum Orientation {
 
 #[derive(GodotClass)]
 #[class(base=CharacterBody2D)]
-struct Player {
+pub struct Player {
     #[export]
     max_health: u16,
     #[export]
@@ -155,10 +155,13 @@ impl Player {
     }
 
     #[func]
-    fn damage_player(&mut self, amount: i16) {
+    pub fn damage_player(&mut self, amount: i16) {
         self.health -= amount;
         if self.health <= 0 {
             self.base_mut().get_tree().unwrap().quit();
+        }
+        if self.health > self.max_health as i16 {
+            self.health = self.max_health as i16;
         }
     }
 }

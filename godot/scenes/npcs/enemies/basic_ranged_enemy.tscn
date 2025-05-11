@@ -1,7 +1,8 @@
-[gd_scene load_steps=8 format=3 uid="uid://cfoq7kkkfnk48"]
+[gd_scene load_steps=9 format=3 uid="uid://bng6qs1mwwsq2"]
 
 [ext_resource type="Texture2D" uid="uid://c6fi7b1nhp0jq" path="res://assets/npcs/enemy_slime.png" id="1_1y62i"]
-[ext_resource type="BehaviorTree" uid="uid://kmketea3seir" path="res://behavior/trees/enemy_ranged.tres" id="2_1y62i"]
+[ext_resource type="PackedScene" uid="uid://dys5a417j6bqq" path="res://scenes/npcs/enemies/enemy_drops/drop_health.tscn" id="1_u0tjr"]
+[ext_resource type="BehaviorTree" uid="uid://ckqn5rvlffg88" path="res://behavior/trees/enemy_ranged.tres" id="2_1y62i"]
 [ext_resource type="PackedScene" uid="uid://pf5dccxmrlrw" path="res://scenes/gun.tscn" id="3_sb1ur"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_1y62i"]
@@ -25,6 +26,8 @@ radius = 13.0
 
 [node name="BasicRangedEnemy" type="Enemy" node_paths=PackedStringArray("gun") groups=["enemy"]]
 gun = NodePath("Gun")
+loot_pool = Array[PackedScene]([ExtResource("1_u0tjr")])
+loot_chances = Array[int]([100])
 collision_layer = 4
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]

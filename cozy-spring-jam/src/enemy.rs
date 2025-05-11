@@ -1,7 +1,8 @@
+use crate::enemy_drop::EnemyDrop;
 use crate::gun::Gun;
-use godot::builtin::{Vector2, real};
-use godot::classes::{CharacterBody2D, ICharacterBody2D, NavigationAgent2D, Node};
-use godot::global::godot_print;
+use godot::builtin::{Array, Vector2, real};
+use godot::classes::{CharacterBody2D, ICharacterBody2D, NavigationAgent2D, Node, PackedScene};
+use godot::global::randi_range;
 use godot::obj::{Base, Gd, WithBaseField};
 use godot::prelude::{GodotClass, godot_api};
 
@@ -16,6 +17,12 @@ pub struct Enemy {
 
     #[export]
     gun: Option<Gd<Gun>>,
+
+    #[export]
+    loot_pool: Array<(Gd<PackedScene>)>,
+
+    #[export]
+    loot_chances: Array<u16>,
 
     base: Base<CharacterBody2D>,
 }
@@ -76,6 +83,29 @@ impl Enemy {
     pub fn damage_enemy(&mut self, amount: i16) {
         self.health -= amount;
         if self.health <= 0 {
+            let rng = randi_range(1, 100);
+            for i in 0..self.loot_chances.len() {
+                if (rng as u16)
+                    < self
+                        .loot_chances
+                        .get(i)
+                        .expect("Loot chance needs to defined!")
+                {
+                    let loot = self
+                        .loot_pool
+                        .get(i)
+                        .expect("Every loot chance needs an assigned loot!")
+                        .instantiate();
+                    let mut loot_node: Gd<EnemyDrop> = loot
+                        .expect("What could go wrong instantiating a scene?")
+                        .cast();
+                    loot_node.set_global_position(self.base_mut().get_global_position());
+                    self.base_mut()
+                        .get_parent()
+                        .expect("We can access the parent, right?")
+                        .add_child(&loot_node);
+                }
+            }
             self.base_mut().queue_free();
         }
     }
@@ -111,6 +141,8 @@ impl ICharacterBody2D for Enemy {
             speed: 100.0,
             frames_since_facing_update: 0,
             gun: None,
+            loot_pool: Default::default(),
+            loot_chances: Default::default(),
             base,
         }
     }

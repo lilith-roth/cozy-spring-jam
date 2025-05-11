@@ -3,7 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://cw84ajyk2ltpu" path="res://scenes/room_scene.tscn" id="1_n1i7m"]
 [ext_resource type="PackedScene" uid="uid://bgwatioscnv6g" path="res://scenes/player_scene.tscn" id="2_6l2vu"]
 [ext_resource type="PackedScene" uid="uid://uy4pxcfg127h" path="res://scenes/npcs/enemies/basic_melee_enemy.tscn" id="4_3uthi"]
-[ext_resource type="PackedScene" path="res://scenes/npcs/enemies/basic_ranged_enemy.tscn" id="4_hpymj"]
+[ext_resource type="PackedScene" uid="uid://bng6qs1mwwsq2" path="res://scenes/npcs/enemies/basic_ranged_enemy.tscn" id="4_hpymj"]
 
 [node name="DebugScene" type="Node2D"]
 y_sort_enabled = true
