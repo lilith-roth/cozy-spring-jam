@@ -214,7 +214,8 @@ impl Player {
             .bind_mut()
             .add_trauma(self.damage_camera_shake_trauma);
         if self.health <= 0 {
-            self.base_mut().get_tree().unwrap().quit();
+            let menu_scene: Gd<PackedScene> = load("res://scenes/main_menu_scene.tscn");
+            self.base_mut().get_tree().expect("Could not get tree!").change_scene_to_packed(&menu_scene);
         }
         if self.health > self.attr().get_int(PlayerAttribute::MaxHealth) as i16 {
             self.health = self.attr().get(PlayerAttribute::MaxHealth) as i16;

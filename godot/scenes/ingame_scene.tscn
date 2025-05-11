@@ -46,9 +46,7 @@ position = Vector2(349, 123)
 y_sort_enabled = true
 
 [node name="PlayerScene" parent="." instance=ExtResource("2_2577t")]
-max_health = null
 health = null
-speed = null
 y_sort_enabled = true
 position = Vector2(155, 92)
 
