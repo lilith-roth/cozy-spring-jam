@@ -63,13 +63,11 @@ impl Gun {
             let pos = self.base().get_global_position();
             let rotation = self.get_bullet_rotation();
 
-            let bullet_dir = Vector2::new(rotation.cos(), rotation.sin());
-
             bullets.bind_mut().spawn_bullet(
                 pos,
-                bullet_dir,
+                rotation,
                 BulletParams {
-                    bounces: 0,
+                    max_bounces: 1,
                     lifetime: 0.5,
                     speed: 200.0,
                     power: 0.5,

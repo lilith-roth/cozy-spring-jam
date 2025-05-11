@@ -1,4 +1,7 @@
-use crate::enemy::Enemy;
+use crate::{
+    attribute::{Attributes, Effect, Operation},
+    enemy::Enemy,
+};
 use godot::{
     classes::{
         AnimatedSprite2D, AudioStreamPlayer2D, GpuParticles2D, IGpuParticles2D, IRigidBody2D,
@@ -6,6 +9,16 @@ use godot::{
     },
     prelude::*,
 };
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum BulletAttribute {
+    MaxBounces,
+    BounceSpeedPreservation,
+    BouncePowerPreservation,
+    Speed,
+    Lifetime,
+    Power,
+}
 
 #[derive(GodotClass)]
 #[class(base=RigidBody2D)]
@@ -16,26 +29,13 @@ struct Bullet {
     #[export]
     bounce_sfx: Option<Gd<AudioStreamPlayer2D>>,
 
-    #[export]
-    bounces: u32,
-
-    #[export]
-    bounce_velocity_preservation: f32,
-
-    #[export]
-    bounce_power_preservation: f32,
-
-    #[export]
-    initial_velocity: Vector2,
-
-    #[export]
-    lifetime: f32,
-
-    #[export]
-    power: f32,
-
     #[var]
     age: f32,
+
+    #[var]
+    bounces: u32,
+
+    attributes: Attributes<BulletAttribute>,
 
     dead: bool,
 
@@ -50,13 +50,9 @@ impl IRigidBody2D for Bullet {
         Self {
             bounce_sfx: None,
             animated_sprite: None,
-            bounces: 0,
-            bounce_velocity_preservation: 1.0,
-            bounce_power_preservation: 0.5,
-            initial_velocity: Vector2::ZERO,
-            lifetime: 2.0,
-            power: 1.0,
+            attributes: Attributes::new(),
             age: 0.0,
+            bounces: 0,
             dead: false,
             is_player_bullet: true,
             base,
@@ -67,7 +63,11 @@ impl IRigidBody2D for Bullet {
         self.play_animation("default");
         self.base_mut().set_contact_monitor(true);
         self.base_mut().set_max_contacts_reported(1);
-        let initial_vel = self.initial_velocity;
+
+        let speed = self.attr().get(BulletAttribute::Speed);
+        let rotation = self.base().get_global_rotation();
+        let initial_vel = speed * Vector2::new(rotation.cos(), rotation.sin());
+
         self.base_mut().set_linear_velocity(initial_vel);
         if let Some(mut anim) = self.animated_sprite.clone() {
             anim.signals()
@@ -81,9 +81,13 @@ impl IRigidBody2D for Bullet {
 
     fn physics_process(&mut self, delta: f64) {
         self.age += delta as f32;
-        if self.age > self.lifetime {
+        if self.age > self.attr().get(BulletAttribute::Lifetime) {
             self.decay();
         }
+
+        let norm_vel = self.base().get_linear_velocity().normalized_or_zero();
+        let new_vel = self.attr().get(BulletAttribute::Speed) * norm_vel;
+        self.base_mut().set_linear_velocity(new_vel);
     }
 }
 
@@ -97,10 +101,15 @@ impl Bullet {
 }
 
 impl Bullet {
+    pub fn attr(&mut self) -> &mut Attributes<BulletAttribute> {
+        &mut self.attributes
+    }
+
     fn on_body_entered(&mut self, node: Gd<Node>) {
         let mut should_explode = false;
         if node.is_class("TileMapLayer") {
-            if self.bounces == 0 {
+            self.bounces += 1;
+            if self.bounces > self.attr().get_uint(BulletAttribute::MaxBounces) {
                 should_explode = true;
             } else {
                 self.bounce();
@@ -118,11 +127,15 @@ impl Bullet {
 
     fn bounce(&mut self) {
         self.play_bounce();
-        self.bounces -= 1;
-        let prev_vel = self.base().get_linear_velocity();
-        let new_vel = self.bounce_velocity_preservation * prev_vel;
-        self.base_mut().set_linear_velocity(new_vel);
-        self.power *= self.bounce_power_preservation;
+
+        let speed_factor = self.attr().get(BulletAttribute::BounceSpeedPreservation);
+        let power_factor = self.attr().get(BulletAttribute::BouncePowerPreservation);
+
+        let mut bounce_effect = Effect::new();
+        bounce_effect.add_modifier(BulletAttribute::Speed, Operation::Multiply(speed_factor));
+        bounce_effect.add_modifier(BulletAttribute::Power, Operation::Multiply(power_factor));
+
+        self.attr().apply_effect(bounce_effect);
     }
 
     fn free_if_dead(&mut self) {
@@ -137,22 +150,18 @@ impl Bullet {
 
     fn impact(&mut self, node: Gd<Node>) {
         let pos = self.position();
-        let power = self.get_power();
+        let power = self.attr().get(BulletAttribute::Power);
         self.signals().impacted().emit(pos, power, &node);
 
         if self.is_player_bullet {
             if node.is_class("Enemy") {
                 let mut enemy_node: Gd<Enemy> = node.cast();
-                enemy_node
-                    .bind_mut()
-                    .damage_enemy(self.power.round() as i16);
+                enemy_node.bind_mut().damage_enemy(power.round() as i16);
             }
         } else {
             if node.is_class("Player") {
                 let mut enemy_node: Gd<Enemy> = node.cast();
-                enemy_node
-                    .bind_mut()
-                    .damage_enemy(self.power.round() as i16);
+                enemy_node.bind_mut().damage_enemy(power.round() as i16);
             }
         }
     }
@@ -197,9 +206,9 @@ impl Bullet {
 pub struct BulletParams {
     pub power: f32,
     pub speed: f32,
-    pub bounces: u32,
+    pub max_bounces: u32,
     pub bounce_power_preservation: f32,
-    pub bounce_velocity_preservation: f32,
+    pub bounce_speed_preservation: f32,
     pub lifetime: f32,
     pub is_player_bullet: bool,
 }
@@ -209,8 +218,8 @@ impl Default for BulletParams {
         Self {
             power: 1.0,
             speed: 400.0,
-            bounces: 0,
-            bounce_velocity_preservation: 1.0,
+            max_bounces: 0,
+            bounce_speed_preservation: 1.0,
             bounce_power_preservation: 1.0,
             lifetime: 0.2,
             is_player_bullet: true,
@@ -255,21 +264,30 @@ impl BulletManager {
         result
     }
 
-    pub fn spawn_bullet(&mut self, pos: Vector2, direction: Vector2, params: BulletParams) {
+    pub fn spawn_bullet(&mut self, pos: Vector2, rotation: f32, params: BulletParams) {
         let mut bullet: Gd<Bullet> = self
             .bullet_scene
             .instantiate()
             .expect("Failed to spawn bullet")
             .cast();
         bullet.set_position(pos);
+        bullet.set_rotation(rotation);
         {
             let mut bullet_mut = bullet.bind_mut();
-            bullet_mut.set_power(params.power);
-            bullet_mut.set_initial_velocity(params.speed * direction);
-            bullet_mut.set_bounces(params.bounces);
-            bullet_mut.set_bounce_velocity_preservation(params.bounce_velocity_preservation);
-            bullet_mut.set_bounce_power_preservation(params.bounce_power_preservation);
-            bullet_mut.set_lifetime(params.lifetime);
+            bullet_mut
+                .attr()
+                .set_base(BulletAttribute::Power, params.power)
+                .set_base(BulletAttribute::Speed, params.speed)
+                .set_base(BulletAttribute::MaxBounces, params.max_bounces as f32)
+                .set_base(
+                    BulletAttribute::BounceSpeedPreservation,
+                    params.bounce_speed_preservation,
+                )
+                .set_base(
+                    BulletAttribute::BouncePowerPreservation,
+                    params.bounce_power_preservation,
+                )
+                .set_base(BulletAttribute::Lifetime, params.lifetime);
         }
 
         self.base_mut().add_child(&bullet);

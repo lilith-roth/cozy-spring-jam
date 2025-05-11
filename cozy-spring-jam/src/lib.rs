@@ -1,3 +1,4 @@
+mod attribute;
 mod bullet;
 mod enemy;
 mod gun;

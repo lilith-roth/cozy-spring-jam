@@ -8,4 +8,5 @@ crate-type = ["cdylib"]  # Compile this crate to a dynamic C library.
 
 [dependencies]
 godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features = ["api-4-3", "experimental-godot-api", "experimental-wasm", "lazy-function-tables"] }
+uuid = { version = "1.16.0", features = ["v4", "fast-rng", "macro-diagnostics"] }
 
