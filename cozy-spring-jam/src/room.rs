@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use crate::utils::Grid;
 use godot::{
     classes::{
@@ -8,7 +6,7 @@ use godot::{
     },
     prelude::*,
 };
-use godot::classes::Camera2D;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 struct RoomGenParams {
@@ -402,7 +400,10 @@ impl INode2D for Room {
             exit_bottom: rng.randi() % 2 == 0,
             exit_right: rng.randi() % 2 == 0,
         });
-        self.generate(rng.randi(), &layout.clone().expect("Could not clone room layout"));
+        self.generate(
+            rng.randi(),
+            &layout.clone().expect("Could not clone room layout"),
+        );
         self.room_layout = layout;
     }
 }
@@ -493,7 +494,12 @@ impl Room {
         }
     }
 
-    fn should_have_edge_wall(&self, x: i32, y: i32, layout: &RoomLayout) -> bool {
+    fn should_have_edge_wall(
+        &self,
+        x: i32,
+        y: i32,
+        layout: &RoomLayout,
+    ) -> bool {
         let center_dist_x = x - self.width / 2;
         let center_dist_y = y - self.height / 2;
         let max_dist = self.params.exit_size as i32 / 2;
@@ -516,18 +522,21 @@ impl Room {
     }
 
     pub fn generate_adjacent_rooms(&mut self) {
-        if self.adjacent_rooms_generated { return; }
+        if self.adjacent_rooms_generated {
+            return;
+        }
         let layout_raw = self.room_layout.clone();
         match layout_raw {
-            None => {godot_error!("Room layout not stored!")}
+            None => {
+                godot_error!("Room layout not stored!")
+            }
             Some(layout) => {
                 let current_room_position = self.base_mut().get_global_position();
                 godot_print!("Generating adjacent room to {:?}", current_room_position);
                 if layout.exit_right {
                     let new_room = self.room_scene.instantiate();
-                    let mut new_room_node: Gd<Room> = new_room
-                        .expect("Could not be instantiated!")
-                        .cast();
+                    let mut new_room_node: Gd<Room> =
+                        new_room.expect("Could not be instantiated!").cast();
                     let new_room_position = Vector2 {
                         x: current_room_position.x + 576.0,
                         y: current_room_position.y,
@@ -536,17 +545,20 @@ impl Room {
                         new_room_node.queue_free();
                     } else {
                         new_room_node.set_position(new_room_position);
-                        self.base_mut().get_parent().expect("Could not get parent!").add_child(&new_room_node);
-                        godot_print!("Generated new room at {:?}", new_room_node.get_global_position());
-                        godot_print!("Generated new room at a {:?}", current_room_position);
+                        self.base_mut()
+                            .get_parent()
+                            .expect("Could not get parent!")
+                            .add_child(&new_room_node);
+                        godot_print!(
+                            "Generated new room at {:?}",
+                            new_room_node.get_global_position()
+                        );
                     }
-
                 }
                 if layout.exit_left {
                     let new_room = self.room_scene.instantiate();
-                    let mut new_room_node: Gd<Room> = new_room
-                        .expect("Could not be instantiated!")
-                        .cast();
+                    let mut new_room_node: Gd<Room> =
+                        new_room.expect("Could not be instantiated!").cast();
                     let new_room_position = Vector2 {
                         x: current_room_position.x - 576.0,
                         y: current_room_position.y,
@@ -555,15 +567,20 @@ impl Room {
                         new_room_node.queue_free();
                     } else {
                         new_room_node.set_position(new_room_position);
-                        self.base_mut().get_parent().expect("Could not get parent!").add_child(&new_room_node);
-                        godot_print!("Generated new room at {:?}", new_room_node.get_global_position());
+                        self.base_mut()
+                            .get_parent()
+                            .expect("Could not get parent!")
+                            .add_child(&new_room_node);
+                        godot_print!(
+                            "Generated new room at {:?}",
+                            new_room_node.get_global_position()
+                        );
                     }
                 }
                 if layout.exit_bottom {
                     let new_room = self.room_scene.instantiate();
-                    let mut new_room_node: Gd<Room> = new_room
-                        .expect("Could not be instantiated!")
-                        .cast();
+                    let mut new_room_node: Gd<Room> =
+                        new_room.expect("Could not be instantiated!").cast();
                     let new_room_position = Vector2 {
                         x: current_room_position.x,
                         y: current_room_position.y + 352.0,
@@ -572,15 +589,20 @@ impl Room {
                         new_room_node.queue_free();
                     } else {
                         new_room_node.set_position(new_room_position);
-                        self.base_mut().get_parent().expect("Could not get parent!").add_child(&new_room_node);
-                        godot_print!("Generated new room at {:?}", new_room_node.get_global_position());
+                        self.base_mut()
+                            .get_parent()
+                            .expect("Could not get parent!")
+                            .add_child(&new_room_node);
+                        godot_print!(
+                            "Generated new room at {:?}",
+                            new_room_node.get_global_position()
+                        );
                     }
                 }
                 if layout.exit_top {
                     let new_room = self.room_scene.instantiate();
-                    let mut new_room_node: Gd<Room> = new_room
-                        .expect("Could not be instantiated!")
-                        .cast();
+                    let mut new_room_node: Gd<Room> =
+                        new_room.expect("Could not be instantiated!").cast();
                     let new_room_position = Vector2 {
                         x: current_room_position.x,
                         y: current_room_position.y - 352.0,
@@ -589,8 +611,14 @@ impl Room {
                         new_room_node.queue_free();
                     } else {
                         new_room_node.set_position(new_room_position);
-                        self.base_mut().get_parent().expect("Could not get parent!").add_child(&new_room_node);
-                        godot_print!("Generated new room at {:?}", new_room_node.get_global_position());
+                        self.base_mut()
+                            .get_parent()
+                            .expect("Could not get parent!")
+                            .add_child(&new_room_node);
+                        godot_print!(
+                            "Generated new room at {:?}",
+                            new_room_node.get_global_position()
+                        );
                     }
                 }
                 self.adjacent_rooms_generated = true;
@@ -606,10 +634,10 @@ impl Room {
             .get_nodes_in_group("room");
         for i in 0..rooms.len() {
             let mut room: Gd<Room> = rooms.get(i).expect("Could not retrieve room!").cast();
-            if pos.x > room.get_global_position().x
-                && pos.x < room.get_global_position().x + 576.0
-                && pos.y > room.get_global_position().y
-                && pos.y < room.get_global_position().y + 352.0
+            if pos.x > room.get_position().x
+                && pos.x < room.get_position().x + 576.0
+                && pos.y > room.get_position().y
+                && pos.y < room.get_position().y + 352.0
             {
                 godot_print!("Duplicated room! {:?}", pos);
                 return Option::from(room);
