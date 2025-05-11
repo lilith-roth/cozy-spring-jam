@@ -371,7 +371,7 @@ pub struct Room {
 
     room_scene: Gd<PackedScene>,
 
-    enemy_scene: Gd<PackedScene>,
+    enemy_scenes: Vec<Gd<PackedScene>>,
 
     room_layout: Option<RoomLayout>,
 
@@ -393,7 +393,10 @@ impl INode2D for Room {
             height: 0,
             params: RoomGenParams::default(),
             room_scene: load("res://scenes/room_scene.tscn"),
-            enemy_scene: load("res://scenes/npcs/enemies/basic_melee_enemy.tscn"),
+            enemy_scenes: vec![
+                load("res://scenes/npcs/enemies/basic_melee_enemy.tscn"),
+                load("res://scenes/npcs/enemies/basic_ranged_enemy.tscn"),
+            ],
             room_layout: None,
             adjacent_rooms_generated: false,
             not_first_room: true,
@@ -681,8 +684,11 @@ impl Room {
         let mut rng = RandomNumberGenerator::new_gd();
         let amount_new_enemies = rng.randi_range(0, 6);
         for i in 0..amount_new_enemies {
+            let enemy_selection = rng.randi_range(0, (self.enemy_scenes.len() - 1) as i32);
             let mut new_enemy: Gd<Enemy> = self
-                .enemy_scene
+                .enemy_scenes
+                .get(enemy_selection as usize)
+                .expect("Could not retrieve enemy scene!")
                 .instantiate()
                 .expect("Could not instantiate enemy scene!")
                 .cast();
