@@ -44,9 +44,6 @@ path_desired_distance = 5.0
 target_desired_distance = 16.0
 path_postprocessing = 1
 avoidance_enabled = true
-debug_enabled = true
-debug_use_custom = true
-debug_path_custom_color = Color(0.786108, 0.327246, 0.715393, 1)
 
 [node name="MeleeDetector" type="MeleeDetector" parent="."]
 is_melee = true

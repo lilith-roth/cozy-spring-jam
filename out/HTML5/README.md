@@ -1,1 +1,0 @@
-# cozy-spring-jam macOS

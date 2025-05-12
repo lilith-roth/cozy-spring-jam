@@ -7,7 +7,8 @@
 [ext_resource type="PackedScene" uid="uid://b4blrdjthcxnn" path="res://ui/components/game_logo.tscn" id="4_fnufg"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_2ikbh"]
-font_size = 8
+line_spacing = 0.0
+font_size = 7
 font_color = Color(1, 1, 1, 0.486275)
 
 [node name="MainMenuScene" type="Node2D"]
@@ -64,7 +65,8 @@ theme_override_constants/margin_top = 10
 
 [node name="Label" type="Label" parent="UI/CenterContainer/VBoxContainer/Credits"]
 layout_mode = 2
-text = "credits"
+text = "Cozy Spring Game Jam 2025 submission
+by void-vale & LilySqueaks"
 label_settings = SubResource("LabelSettings_2ikbh")
 horizontal_alignment = 1
 

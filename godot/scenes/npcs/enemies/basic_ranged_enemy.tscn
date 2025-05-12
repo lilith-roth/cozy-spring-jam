@@ -46,8 +46,5 @@ blackboard_plan = SubResource("BlackboardPlan_8r5q3")
 target_desired_distance = 40.0
 path_postprocessing = 1
 avoidance_enabled = true
-debug_enabled = true
-debug_use_custom = true
-debug_path_custom_color = Color(0.786108, 0.327246, 0.715393, 1)
 
 [node name="Gun" parent="." instance=ExtResource("3_sb1ur")]
